@@ -1,171 +1,140 @@
 package com.WifiAudioDistribution;
-//Code taken from below URL.
-//http://blog.pocketjourney.com/2008/04/04/tutorial-custom-media-streaming-for-androids-mediaplayer/
-//Good looking out!
 
-import java.io.BufferedOutputStream;
-import java.io.File;
-import java.io.FileInputStream;
-import java.io.FileOutputStream;
-import java.io.IOException;
-import java.io.InputStream;
+import java.io.*;
 import java.net.HttpURLConnection;
 import java.net.URL;
 import java.net.URLConnection;
+import java.util.Timer;
+import java.util.TimerTask;
 import java.util.Vector;
 
 import android.app.Activity;
 import android.content.Context;
 import android.media.AudioManager;
 import android.media.MediaPlayer;
+import android.net.nsd.NsdServiceInfo;
+import android.os.Handler;
+import android.os.Looper;
+import android.os.Message;
 import android.util.Log;
 import android.widget.ImageView;
 import android.widget.Toast;
 
 public class StreamingMediaPlayer {
+    private static final String TAG = "MYAPP:StreamingMediaPlayer";
 
-    private String DOWNFILE = "downloadingMediaFile";
+    private final int MESSAGE_SECOND_HANDLER = 1;
 
-    private Context context;
-    private int counter;
-    //TODO should convert to Stack object instead of Vector
-    private Vector<MediaPlayer> mediaplayers = new Vector<MediaPlayer>(3);
     private boolean started = false;
 
-    public StreamingMediaPlayer(Context c) {
-        counter = 0;
-        context = c;
+    public MediaPlayer theMediaPlayer;
+
+    private StreamingFile mStreamFile;
+
+    private OnPlayingSecondListener mOnPlayingSecondListener;
+
+    public Timer timer = new Timer();
+    public TimerTask tt;
+
+    public StreamingMediaPlayer() {
+        Log.d(TAG, "Media Player generated");
+        theMediaPlayer = new MediaPlayer();
+        resetMP();
     }
 
-    /**
-     * Download the url stream to a temporary location and then call the setDataSource
-     * for that local file
-     */
-    public void storeAudioIncrement(byte[] buf, int numread) throws IOException {
-        final String TAG = "storeAudioIncrement";
+    public void tearDown() {
+        Log.d(TAG, "MP Tear down");
 
-        File downloadingMediaFile = new File(context.getCacheDir(), DOWNFILE + counter);
-        Log.i(TAG, "File name: " + downloadingMediaFile);
-
-        BufferedOutputStream bout = new BufferedOutputStream(new FileOutputStream(downloadingMediaFile), 32 * 1024);
-
-        bout.write(buf, 0, numread);
-        bout.flush();
-        bout.close();
-
-        setupplayer(downloadingMediaFile);
-
-        counter++;
+        started = false;
+        stopOnPlaying();
+        theMediaPlayer.stop();
+        theMediaPlayer.release();
     }
 
-    /**
-     * Set Up player(s)
-     */
-    private void setupplayer(File partofaudio) {
-        final File f = partofaudio;
-        final String TAG = "setupplayer";
-        Log.i(TAG, "File " + f.getAbsolutePath());
+    public void setStreamFile(StreamingFile streamFile) {
+        Log.d(TAG, "Set up streaming file");
+        mStreamFile = streamFile;
+    }
 
-        Runnable r = new Runnable() {
+    public boolean setTheDataSource() {
+        try {
+            stopOnPlaying();
+            resetMP();
+            if(mStreamFile.tmpsize() <= 0) {
+                return false;
+            }
+
+            FileInputStream ins = new FileInputStream(mStreamFile.mFile);
+            theMediaPlayer.setDataSource(ins.getFD());
+            return true;
+        } catch(IllegalStateException e) {
+            Log.e(TAG, "IllegalStateException", e);
+        } catch(FileNotFoundException e) {
+            Log.e(TAG, "FileNotFound", e);
+        } catch(IOException e) {
+            Log.e(TAG, "IOException", e);
+        }
+        return false;
+    }
+
+    public void resetMP() {
+        started = false;
+        theMediaPlayer.reset();
+        theMediaPlayer.setAudioStreamType(AudioManager.STREAM_MUSIC);
+    }
+
+    public boolean reassociateStreamFile() {
+        Log.d(TAG, "Reassociate");
+
+        int curr = theMediaPlayer.getCurrentPosition();
+        boolean ret = setTheDataSource();
+        if(ret) {
+            start();
+            theMediaPlayer.seekTo(curr);
+            return true;
+        }
+        return false;
+    }
+
+    public void start() {
+        if(!started) {
+            Log.d(TAG, "Starting");
+            try {
+                theMediaPlayer.prepare();
+                started = true;
+                Log.i(TAG,"Start Player");
+                theMediaPlayer.start();
+
+                startOnPlaying();
+            } catch(IOException e) {
+                Log.e(TAG, "IOException", e);
+            }
+        }
+    }
+
+    public void startOnPlaying() {
+        tt = new TimerTask() {
+            @Override
             public void run() {
-                MediaPlayer mp = new MediaPlayer();
-                try {
-                    MediaPlayer.OnCompletionListener listener = new MediaPlayer.OnCompletionListener () {
-                        public void onCompletion(MediaPlayer mp) {
-                            String TAG = "MediaPlayer.OnCompletionListener";
-
-                            Log.i(TAG, "Current size of mediaplayer list: " + mediaplayers.size() );
-                            boolean waitingForPlayer = false;
-                            boolean leave = false;
-//                            while (mediaplayers.size() <= 1 && leave == false) {
-//                                Log.v(TAG, "waiting for another mediaplayer");
-//                                if (waitingForPlayer == false) {
-//                                    try {
-//                                        Log.v(TAG, "Sleep for a moment");
-//                                        //Spin the spinner
-//                                        PlayListTab a = (PlayListTab) context ;
-//                                        a.handler.sendEmptyMessage(PlayListTab.SPIN);
-//                                        Thread.sleep(1000 * 15);
-//                                        a.handler.sendEmptyMessage(PlayListTab.STOPSPIN);
-//                                        waitingForPlayer = true;
-//                                    } catch (InterruptedException e) {
-//                                        Log.e(TAG, e.toString());
-//                                    }
-//                                } else {
-//                                    Log.e(TAG, "Timeout occured waiting for another media player");
-//                                    Toast.makeText(context, "Trouble downloading audio. :-(" , Toast.LENGTH_LONG).show();
-//                                    stop();
-//
-//                                    leave = true;
-//                                }
-//                            }
-                            if (leave == false && mediaplayers.size() > 1) {
-                                MediaPlayer mp2 = mediaplayers.get(1);
-                                mp2.start();
-                                Log.i(TAG, "Start another player");
-
-                                mp.release();
-                                mediaplayers.remove(mp);
-                            }
-                        }
-                    };
-
-                    FileInputStream ins = new FileInputStream(f);
-                    mp.setDataSource(ins.getFD());
-                    mp.setAudioStreamType(AudioManager.STREAM_MUSIC);
-
-                    mp.setOnCompletionListener(listener);
-                    Log.i(TAG, "Prepare Media Player " + f);
-
-                    if ( ! started  ){
-                        mp.prepare();
-                    } else {
-                        //This will save us a few more seconds
-                        mp.prepareAsync();
-                    }
-
-                    mediaplayers.add(mp);
-
-                    // Notify listener of mediaplayer set up
-                    start();
-                } catch  (IllegalStateException e) {
-                    Log.e(TAG, e.toString(), e);
-                } catch  (IOException e) {
-                    Log.e(TAG, e.toString(), e);
+                if(mOnPlayingSecondListener != null) {
+                    mOnPlayingSecondListener.onPlayingSecond(StreamingMediaPlayer.this);
                 }
-
             }
         };
-        new Thread(r).start();
+        timer.schedule(tt, 0, 1000);
     }
 
-    //Start first audio clip
-    public void start() {
-        String TAG = "startMediaPlayer";
-
-        //Grab out first media player
-        started = true;
-        MediaPlayer mp = mediaplayers.get(0);
-        Log.i(TAG,"Start Player");
-        mp.start();
-    }
-
-    //Is the streamer playing audio?
-    public boolean isPlaying() {
-        String TAG = "isPlaying";
-        boolean result = false;
-        try {
-            MediaPlayer mp = mediaplayers.get(0);
-            if (mp.isPlaying()){
-                result = true;
-            } else {
-                result = false;
-            }
-        } catch (ArrayIndexOutOfBoundsException e) {
-            Log.e(TAG, "No items in Media player List");
+    public void stopOnPlaying() {
+        if(tt != null) {
+            tt.cancel();
         }
-
-        return result;
     }
 
+    public void setOnPlayingSecondListener(OnPlayingSecondListener l) {
+        mOnPlayingSecondListener = l;
+    }
+
+    public static interface OnPlayingSecondListener {
+        void onPlayingSecond(StreamingMediaPlayer smp);
+    }
 }

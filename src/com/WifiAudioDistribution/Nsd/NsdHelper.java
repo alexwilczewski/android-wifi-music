@@ -1,4 +1,4 @@
-package com.WifiAudioDistribution;
+package com.WifiAudioDistribution.Nsd;
 
 import android.content.Context;
 import android.net.nsd.NsdManager;
@@ -13,8 +13,6 @@ public class NsdHelper {
 
     public final boolean ALLOW_SAME_MACHINE_DISCOVERY = true;
 
-    public MyActivity mContext;
-
     public NsdManager mNsdManager;
     public NsdManager.ResolveListener mResolveListener;
     public NsdManager.DiscoveryListener mDiscoveryListener;
@@ -27,9 +25,8 @@ public class NsdHelper {
 
     private OnResolvedServiceListener mOnResolvedServiceListener;
 
-    public NsdHelper(MyActivity context) {
-        mContext = context;
-        mNsdManager = (NsdManager) context.getSystemService(Context.NSD_SERVICE);
+    public NsdHelper(NsdManager nsdManager) {
+        mNsdManager = nsdManager;
 
         mRegisteredService = false;
         mDiscoverServices = false;
