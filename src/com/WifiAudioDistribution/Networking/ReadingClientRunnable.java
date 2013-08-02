@@ -22,6 +22,7 @@ public class ReadingClientRunnable implements Runnable {
     private Socket mSocket;
     private MyActivity mActivity;
     private StreamingMediaPlayer smp;
+    private StreamingFile streamFile;
 
     public ReadingClientRunnable(MyActivity activity, Socket socket) {
         mActivity = activity;
@@ -37,9 +38,6 @@ public class ReadingClientRunnable implements Runnable {
         try {
             in = mSocket.getInputStream();
             out = mSocket.getOutputStream();
-
-            StreamingFile streamFile = new StreamingFile(mActivity.getCacheDir(), StreamingFileName);
-            smp.setStreamFile(streamFile);
 
             boolean readingInFile = false;
             boolean bufferReadySent = false;
@@ -110,13 +108,14 @@ public class ReadingClientRunnable implements Runnable {
             Log.e(TAG, "Could not close socket.", e);
         }
 
-        Log.d(TAG, "Waiting to interrupt");
-
-        while(!Thread.currentThread().isInterrupted()) { }
         if(smp != null) {
+            Log.d(TAG, "Waiting to interrupt");
+
+            while(!Thread.currentThread().isInterrupted()) { }
             smp.tearDown();
+
+            Log.d(TAG, "Thread interrupted.");
         }
-        Log.d(TAG, "Thread interrupted.");
     }
 
     public void startUpReadingInFile() {
@@ -125,5 +124,8 @@ public class ReadingClientRunnable implements Runnable {
             @Override
             public void onPlayingSecond(StreamingMediaPlayer smp) { }
         });
+
+        streamFile = new StreamingFile(mActivity.getCacheDir(), StreamingFileName);
+        smp.setStreamFile(streamFile);
     }
 }
