@@ -26,12 +26,6 @@ public class ReadingClientRunnable implements Runnable {
     public ReadingClientRunnable(MyActivity activity, Socket socket) {
         mActivity = activity;
         mSocket = socket;
-
-        smp = new StreamingMediaPlayer();
-        smp.setOnPlayingSecondListener(new StreamingMediaPlayer.OnPlayingSecondListener() {
-            @Override
-            public void onPlayingSecond(StreamingMediaPlayer smp) { }
-        });
     }
 
     public void run() {
@@ -59,6 +53,7 @@ public class ReadingClientRunnable implements Runnable {
                     Log.d(TAG, "Message: " + message);
                     if(message == ClientManager.SENDING_FILE) {
                         Log.d(TAG, "Begin Reading in the file");
+                        startUpReadingInFile();
                         readingInFile = true;
                     } else if(message == ClientManager.START_PLAYBACK) {
                         if(!playbackStarted) {
@@ -100,8 +95,10 @@ public class ReadingClientRunnable implements Runnable {
             Log.d(TAG, "Read: "+read);
             in.close();
 
-            streamFile.transfer();
-            smp.reassociateStreamFile();
+            if(readingInFile) {
+                streamFile.transfer();
+                smp.reassociateStreamFile();
+            }
 
         } catch(IOException e) {
             Log.e(TAG, "Could not read in from socket.", e);
@@ -116,7 +113,17 @@ public class ReadingClientRunnable implements Runnable {
         Log.d(TAG, "Waiting to interrupt");
 
         while(!Thread.currentThread().isInterrupted()) { }
-        smp.tearDown();
+        if(smp != null) {
+            smp.tearDown();
+        }
         Log.d(TAG, "Thread interrupted.");
+    }
+
+    public void startUpReadingInFile() {
+        smp = new StreamingMediaPlayer();
+        smp.setOnPlayingSecondListener(new StreamingMediaPlayer.OnPlayingSecondListener() {
+            @Override
+            public void onPlayingSecond(StreamingMediaPlayer smp) { }
+        });
     }
 }

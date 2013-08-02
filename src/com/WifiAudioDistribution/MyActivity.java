@@ -98,6 +98,7 @@ public class MyActivity extends Activity {
 
         Button mMusicBtn = (Button) findViewById(R.id.music);
         Button mManageConnectionsBtn = (Button) findViewById(R.id.manage_connections);
+        Button mRediscovery = (Button) findViewById(R.id.rediscovery);
 
         mMusicBtn.setOnClickListener(new Button.OnClickListener() {
             public void onClick(View v) {
@@ -108,6 +109,12 @@ public class MyActivity extends Activity {
         mManageConnectionsBtn.setOnClickListener(new Button.OnClickListener() {
             public void onClick(View v) {
                 modifyConnections();
+            }
+        });
+
+        mRediscovery.setOnClickListener(new Button.OnClickListener() {
+            public void onClick(View v) {
+                refreshAvailability();
             }
         });
     }
@@ -155,6 +162,10 @@ public class MyActivity extends Activity {
         while(itr.hasNext()) {
             resolvedClient(itr.next());
         }
+        refreshAvailability();
+    }
+
+    public void refreshAvailability() {
         mCheckClientAvailability.sendEmptyMessage(0);
     }
 
