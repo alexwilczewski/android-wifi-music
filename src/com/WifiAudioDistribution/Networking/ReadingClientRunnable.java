@@ -19,24 +19,22 @@ public class ReadingClientRunnable implements Runnable {
 
     private final String StreamingFileName = "StreamingFile";
 
-    Socket mSocket;
-    MyActivity mActivity;
+    private Socket mSocket;
+    private MyActivity mActivity;
+    private StreamingMediaPlayer smp;
 
     public ReadingClientRunnable(MyActivity activity, Socket socket) {
         mActivity = activity;
         mSocket = socket;
+
+        smp = new StreamingMediaPlayer();
+        smp.setOnPlayingSecondListener(new StreamingMediaPlayer.OnPlayingSecondListener() {
+            @Override
+            public void onPlayingSecond(StreamingMediaPlayer smp) { }
+        });
     }
 
     public void run() {
-        StreamingMediaPlayer smp = new StreamingMediaPlayer();
-        smp.setOnPlayingSecondListener(new StreamingMediaPlayer.OnPlayingSecondListener() {
-            @Override
-            public void onPlayingSecond(StreamingMediaPlayer smp) {
-//                Log.d(TAG, "Time: " + smp.theMediaPlayer.getCurrentPosition() + "/" + smp.theMediaPlayer.getDuration());
-
-            }
-        });
-
         byte[] buffer = new byte[4096];
         int read = 0;
         InputStream in;

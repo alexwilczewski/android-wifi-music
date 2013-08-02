@@ -1,4 +1,13 @@
 <?xml version="1.0" encoding="utf-8"?>
 <resources>
     <string name="app_name">WifiAudioDistribution</string>
+    <string name="manage_connections_label">Manage Connections</string>
+    <string name="edit_connection_label">Edit Connection</string>
+    <string name="hostname_title">Hostname</string>
+    <string name="port_title">Port</string>
+    <string name="servicename_title">Nickname</string>
+    <string name="manage_connections_btn">Manage Connections</string>
+    <string name="add_service_btn">Add Service</string>
+    <string name="delete_service_btn">Delete</string>
+    <string name="save_edit_service_btn">Save</string>
 </resources>

@@ -1,22 +1,24 @@
 package com.WifiAudioDistribution;
 
 import android.content.Context;
+import android.graphics.Color;
 import android.util.Log;
 import android.view.LayoutInflater;
 import android.view.View;
 import android.view.ViewGroup;
 import android.widget.ArrayAdapter;
 import android.widget.TextView;
+import com.WifiAudioDistribution.Db.ClientInfoDbWrapper;
 
-public class NsdAdapter extends ArrayAdapter<ClientInfo> {
+public class NsdAdapter extends ArrayAdapter<ClientInfoDbWrapper> {
     private final String TAG = "MYAPP:NsdAdapter";
 
-    private MyActivity mActivity;
+    private Context mActivity;
     private int viewId;
 
     public NsdAdapter(Context context, int textViewResourceId) {
         super(context, textViewResourceId);
-        mActivity = (MyActivity) context;
+        mActivity = context;
         viewId = textViewResourceId;
     }
 
@@ -28,16 +30,25 @@ public class NsdAdapter extends ArrayAdapter<ClientInfo> {
             v = vi.inflate(viewId, null);
         }
 
-        ClientInfo clientInfo = getItem(position);
-        Log.d(TAG, "Service Added: " + clientInfo.host);
+        ClientInfoDbWrapper clientInfo = getItem(position);
 
-        TextView hostnameText = (TextView) v.findViewById(R.id.hostname);
+        TextView hostnamePortText = (TextView) v.findViewById(R.id.hostname_port);
         TextView servicenameText = (TextView) v.findViewById(R.id.servicename);
-        TextView portText = (TextView) v.findViewById(R.id.port);
+        TextView availableText = (TextView) v.findViewById(R.id.available);
 
-        hostnameText.setText(clientInfo.host);
+        hostnamePortText.setText(clientInfo.host+":"+clientInfo.port);
         servicenameText.setText(clientInfo.name);
-        portText.setText(""+clientInfo.port);
+        availableText.setText(clientInfo.available ? "Y" : "N");
+
+        if(clientInfo.available) {
+            hostnamePortText.setTextColor(Color.WHITE);
+            servicenameText.setTextColor(Color.WHITE);
+            availableText.setTextColor(Color.WHITE);
+        } else {
+            hostnamePortText.setTextColor(Color.GRAY);
+            servicenameText.setTextColor(Color.GRAY);
+            availableText.setTextColor(Color.GRAY);
+        }
 
         return v;
     }

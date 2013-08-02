@@ -9,11 +9,26 @@
     <uses-permission android:name="android.permission.ACCESS_WIFI_STATE" />
     <application android:label="@string/app_name" android:icon="@drawable/ic_launcher">
         <activity android:name="MyActivity"
-                  android:label="@string/app_name">
+                  android:label="@string/app_name"
+                  android:launchMode="singleTop">
             <intent-filter>
                 <action android:name="android.intent.action.MAIN"/>
                 <category android:name="android.intent.category.LAUNCHER"/>
             </intent-filter>
+        </activity>
+        <activity android:name="com.WifiAudioDistribution.Activities.ManageConnectionsActivity"
+                android:label="@string/manage_connections_label"
+                android:parentActivityName="com.WifiAudioDistribution.MyActivity">
+            <meta-data
+                    android:name="android.support.PARENT_ACTIVITY"
+                    android:value="com.WifiAudioDistribution.MyActivity" />
+        </activity>
+        <activity android:name="com.WifiAudioDistribution.Activities.EditConnectionActivity"
+                  android:label="@string/edit_connection_label"
+                  android:parentActivityName="com.WifiAudioDistribution.Activities.ManageConnectionsActivity">
+            <meta-data
+                    android:name="android.support.PARENT_ACTIVITY"
+                    android:value="com.WifiAudioDistribution.Activities.ManageConnectionsActivity" />
         </activity>
     </application>
 </manifest>

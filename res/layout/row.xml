@@ -5,7 +5,7 @@
               android:layout_height="match_parent"
               android:padding="6dip">
     <TextView
-            android:id="@+id/hostname"
+            android:id="@+id/hostname_port"
             android:layout_width="wrap_content"
             android:layout_height="wrap_content"
             android:layout_alignParentLeft="true"
@@ -15,12 +15,12 @@
             android:id="@+id/servicename"
             android:layout_width="wrap_content"
             android:layout_height="wrap_content"
-            android:layout_toRightOf="@id/hostname"
+            android:layout_toRightOf="@id/hostname_port"
             android:paddingLeft="10dip"
             android:text="" />
 
     <TextView
-            android:id="@+id/port"
+            android:id="@+id/available"
             android:layout_width="wrap_content"
             android:layout_height="wrap_content"
             android:layout_alignParentRight="true"

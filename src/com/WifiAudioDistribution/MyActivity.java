@@ -1,7 +1,9 @@
 package com.WifiAudioDistribution;
 
 import android.app.Activity;
+import android.content.Intent;
 import android.content.pm.ActivityInfo;
+import android.net.Uri;
 import android.os.Bundle;
 import android.os.Handler;
 import android.os.Message;
@@ -9,16 +11,28 @@ import android.util.Log;
 import android.view.View;
 import android.widget.Button;
 import android.widget.ListView;
+import com.WifiAudioDistribution.Activities.ManageConnectionsActivity;
+import com.WifiAudioDistribution.Db.ClientInfoDataSource;
+import com.WifiAudioDistribution.Db.ClientInfoDbWrapper;
 import com.WifiAudioDistribution.Nsd.NsdRunnable;
+
+import java.io.File;
+import java.util.Iterator;
+import java.util.List;
 
 public class MyActivity extends Activity {
     private final String TAG = "MYAPP:Activity";
+
+    final int ACTIVITY_CHOOSE_FILE = 1;
+    private final int ACTIVITY_MANAGE_CONNECTIONS = 2;
 
     public ClientManager mClientManager;
 
     public Thread mDiscoveryThread;
 
     public MyActivity mActivity;
+
+    public ClientInfoDataSource mDataSource;
 
     // This allows me to easily mock up objects instead of being tied to NsdServiceInfo objects
     public NsdAdapter mNsdAdapter;
@@ -27,10 +41,22 @@ public class MyActivity extends Activity {
         @Override
         public void handleMessage(Message msg) {
             if(mNsdAdapter != null) {
-                ClientInfo clientInfo = (ClientInfo) msg.obj;
-                mNsdAdapter.add(clientInfo);
+                ClientInfoDbWrapper item = (ClientInfoDbWrapper) msg.obj;
+                mNsdAdapter.add(item);
                 mNsdAdapter.notifyDataSetChanged();
             }
+        }
+    };
+
+    Handler mCheckClientAvailability = new Handler() {
+        @Override
+        public void handleMessage(Message msg) {
+            int count = mNsdAdapter.getCount();
+            for(int i = 0; i<count; i++) {
+                ClientInfoDbWrapper item = mNsdAdapter.getItem(i);
+                item.linkAvailable();
+            }
+            mNsdAdapter.notifyDataSetChanged();
         }
     };
 
@@ -40,53 +66,96 @@ public class MyActivity extends Activity {
     @Override
     public void onCreate(Bundle savedInstanceState) {
         super.onCreate(savedInstanceState);
-        setContentView(R.layout.main);
 
-        // Lock to portrait
-        setRequestedOrientation(ActivityInfo.SCREEN_ORIENTATION_PORTRAIT);
-
-        mActivity = this;
-
-        Button mMusicBtn = (Button) findViewById(R.id.music);
-        Button mDiscoverBtn = (Button) findViewById(R.id.discover);
-
-        mMusicBtn.setOnClickListener(new Button.OnClickListener() {
-            public void onClick(View v) {
-                mClientManager.initializeSendingThread();
-            }
-        });
-
-        mDiscoverBtn.setOnClickListener(new Button.OnClickListener() {
-            public void onClick(View v) {
-                discoveryThread(10000);
-            }
-        });
-
-        ListView mConnectionsList = (ListView) findViewById(R.id.connections);
-        mNsdAdapter = new NsdAdapter(this, R.layout.row);
-        mConnectionsList.setAdapter(mNsdAdapter);
-
-        mClientManager = new ClientManager(this);
-        mClientManager.initializeServerSocket();
+        Log.d(TAG, "OnCreate");
 
         init();
     }
 
     public void init() {
-        // Add static clientinfo
-        ClientInfo staticInfo = new ClientInfo();
-        staticInfo.host = "192.168.0.11";
-        staticInfo.port = ClientManager.PORT;
-        staticInfo.name = "Static Client";
+        // Lock to portrait
+        setRequestedOrientation(ActivityInfo.SCREEN_ORIENTATION_PORTRAIT);
 
-        resolvedClient(staticInfo);
+        mActivity = this;
 
-        ClientInfo staticInfo2 = new ClientInfo();
-        staticInfo2.host = "192.168.0.19";
-        staticInfo2.port = ClientManager.PORT;
-        staticInfo2.name = "Static Client 2";
+        mNsdAdapter = new NsdAdapter(this, R.layout.row);
 
-        resolvedClient(staticInfo2);
+        mClientManager = new ClientManager(this);
+        mClientManager.initializeServerSocket();
+
+        mDataSource = new ClientInfoDataSource(this);
+        mDataSource.open();
+
+        layoutInit();
+    }
+
+    public void layoutInit() {
+        setContentView(R.layout.main);
+
+        ListView mConnectionsList = (ListView) findViewById(R.id.connections);
+        mConnectionsList.setAdapter(mNsdAdapter);
+        refreshConnectionList();
+
+        Button mMusicBtn = (Button) findViewById(R.id.music);
+        Button mManageConnectionsBtn = (Button) findViewById(R.id.manage_connections);
+
+        mMusicBtn.setOnClickListener(new Button.OnClickListener() {
+            public void onClick(View v) {
+                sendMusic();
+            }
+        });
+
+        mManageConnectionsBtn.setOnClickListener(new Button.OnClickListener() {
+            public void onClick(View v) {
+                modifyConnections();
+            }
+        });
+    }
+
+    public void modifyConnections() {
+        Intent intent = new Intent(this, ManageConnectionsActivity.class);
+        startActivityForResult(intent, ACTIVITY_MANAGE_CONNECTIONS);
+    }
+
+    public void sendMusic() {
+        Intent chooseFile;
+        Intent intent;
+        chooseFile = new Intent(Intent.ACTION_GET_CONTENT);
+        chooseFile.setType("file/*");
+        intent = Intent.createChooser(chooseFile, "Choose a file");
+        startActivityForResult(intent, ACTIVITY_CHOOSE_FILE);
+    }
+
+    @Override
+    protected void onActivityResult(int requestCode, int resultCode, Intent data) {
+        switch(requestCode) {
+            case ACTIVITY_CHOOSE_FILE: {
+                if (resultCode == RESULT_OK){
+                    Uri uri = data.getData();
+                    String filePath = uri.getPath();
+                    Log.i(TAG, "PATH: "+filePath);
+
+                    mClientManager.initializeSendingThread(new File(filePath));
+                }
+            }
+            case ACTIVITY_MANAGE_CONNECTIONS: {
+                // Refresh Adapter List always after coming from Management
+                refreshConnectionList();
+                Log.d(TAG, "Modify Finished Successfully");
+                if(resultCode == RESULT_OK) { }
+            }
+        }
+    }
+
+    public void refreshConnectionList() {
+        mNsdAdapter.clear();
+
+        List<ClientInfoDbWrapper> clients = mDataSource.getAll();
+        Iterator<ClientInfoDbWrapper> itr = clients.iterator();
+        while(itr.hasNext()) {
+            resolvedClient(itr.next());
+        }
+        mCheckClientAvailability.sendEmptyMessage(0);
     }
 
     // Used to find services over a thread and timed
@@ -95,7 +164,7 @@ public class MyActivity extends Activity {
         mDiscoveryThread.start();
     }
 
-    public void resolvedClient(ClientInfo clientInfo) {
+    public void resolvedClient(ClientInfoDbWrapper clientInfo) {
         mClientManager.serviceResolved(clientInfo);
 
         Message msg = new Message();
@@ -105,6 +174,7 @@ public class MyActivity extends Activity {
 
     @Override
     protected void onPause() {
+        Log.d(TAG, "OnPause");
         if(mDiscoveryThread != null) {
             mDiscoveryThread.interrupt();
         }
@@ -113,11 +183,14 @@ public class MyActivity extends Activity {
 
     @Override
     protected void onResume() {
+        Log.d(TAG, "OnResume");
         super.onResume();
     }
 
     @Override
     protected void onDestroy() {
+        mDataSource.close();
+
         if(mDiscoveryThread != null) {
             mDiscoveryThread.interrupt();
         }

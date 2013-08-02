@@ -18,8 +18,6 @@ public class ClientManager {
     private static final String TAG = "MYAPP:ClientManager";
     public static final int PORT = 1234;
 
-    public static String FILE = "/storage/emulated/0/Music/C2C - Down The Road.mp3";
-
     public static final int SENDING_FILE   = 1;
     public static final int BUFFER_READY   = 2;
     public static final int START_PLAYBACK = 3;
@@ -72,9 +70,9 @@ public class ClientManager {
         mListeningThread.start();
     }
 
-    public void initializeSendingThread() {
+    public void initializeSendingThread(File playbackFile) {
         // Create thread for ServerSocket to send on
-        mSendingThread = new Thread(new SendingClientRunnable(this));
+        mSendingThread = new Thread(new SendingClientRunnable(this, playbackFile));
         mSendingThread.start();
     }
 

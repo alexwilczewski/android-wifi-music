@@ -1,0 +1,28 @@
+<?xml version="1.0" encoding="utf-8"?>
+
+<RelativeLayout xmlns:android="http://schemas.android.com/apk/res/android"
+              android:orientation="vertical"
+              android:layout_width="match_parent"
+              android:layout_height="match_parent">
+    <include android:id="@+id/layout_connection"
+             layout="@layout/connection"
+             android:layout_width="wrap_content"
+             android:layout_height="wrap_content" />
+
+    <Button android:id="@+id/save_service"
+            android:layout_width="wrap_content"
+            android:layout_height="wrap_content"
+            android:layout_below="@id/layout_connection"
+            android:layout_alignParentRight="true"
+            android:paddingLeft="25dp"
+            android:paddingRight="25dp"
+            android:text="@string/save_edit_service_btn" />
+    <Button android:id="@+id/delete_service"
+            android:layout_width="wrap_content"
+            android:layout_height="wrap_content"
+            android:layout_alignParentRight="true"
+            android:layout_alignParentBottom="true"
+            android:paddingLeft="25dp"
+            android:paddingRight="25dp"
+            android:text="@string/delete_service_btn" />
+</RelativeLayout>

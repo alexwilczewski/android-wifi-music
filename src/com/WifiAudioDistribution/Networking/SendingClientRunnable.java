@@ -13,9 +13,11 @@ public class SendingClientRunnable implements Runnable {
 
     private ClientManager tManager;
     private ArrayList<Socket> tSockets;
+    private File tPlaybackFile;
 
-    public SendingClientRunnable(ClientManager manager) {
+    public SendingClientRunnable(ClientManager manager, File playbackFile) {
         tManager = manager;
+        tPlaybackFile = playbackFile;
     }
 
     public void initializeSockets() {
@@ -31,7 +33,7 @@ public class SendingClientRunnable implements Runnable {
             try {
                 tSockets.add(new Socket(host, port));
             } catch(IOException e) {
-                Log.e(TAG, "Connection failed. [" + host + ":" + port + "]", e);
+                Log.e(TAG, "Connection failed. [" + host + ":" + port + "]");
             }
         }
     }
@@ -56,8 +58,7 @@ public class SendingClientRunnable implements Runnable {
         long latency[] = new long[2];
         long largestLatency = 0;
         try {
-            File f = new File(ClientManager.FILE);
-            FileInputStream ios = new FileInputStream(f);
+            FileInputStream ios = new FileInputStream(tPlaybackFile);
 
             // Notify of sending file
             Iterator<Socket> itr = tSockets.iterator();
