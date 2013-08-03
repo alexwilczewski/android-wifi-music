@@ -88,6 +88,7 @@ public class StreamingMediaPlayer {
 
         int curr = theMediaPlayer.getCurrentPosition();
         boolean ret = setTheDataSource();
+        Log.d(TAG, "Set up data source: " + (ret ? "Yes" : "No"));
         if(ret) {
             start();
             theMediaPlayer.seekTo(curr);
