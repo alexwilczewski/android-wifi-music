@@ -8,7 +8,7 @@ import android.content.Context;
 import android.database.Cursor;
 import android.database.SQLException;
 import android.database.sqlite.SQLiteDatabase;
-import com.WifiAudioDistribution.ClientInfo;
+import com.WifiAudioDistribution.Networking.ClientInfo;
 
 public class ClientInfoDataSource {
     private static final String TAG = "MYAPP:ClientInfoDataSource";
@@ -41,15 +41,15 @@ public class ClientInfoDataSource {
         return insertId;
     }
 
-    public List<ClientInfoDbWrapper> getAll() {
-        List<ClientInfoDbWrapper> list = new ArrayList<ClientInfoDbWrapper>();
+    public List<ClientInfo> getAll() {
+        List<ClientInfo> list = new ArrayList<ClientInfo>();
 
         Cursor cursor = database.query(ClientInfoSqliteHelper.TABLE,
                 allColumns, null, null, null, null, null);
 
         cursor.moveToFirst();
         while (!cursor.isAfterLast()) {
-            ClientInfoDbWrapper item = toObject(cursor);
+            ClientInfo item = toObject(cursor);
             list.add(item);
             cursor.moveToNext();
         }
@@ -58,28 +58,51 @@ public class ClientInfoDataSource {
         return list;
     }
 
-    public ClientInfoDbWrapper find(long id) {
+    public ClientInfo find(long id) {
         Cursor cursor = database.query(ClientInfoSqliteHelper.TABLE,
                 allColumns, ClientInfoSqliteHelper.C_ID + " = " + id, null,
                 null, null, null);
         cursor.moveToFirst();
         if(cursor.getCount() <= 0) {
-            return ClientInfoDbWrapper.getEmpty();
+            return ClientInfo.getEmpty();
         }
-        ClientInfoDbWrapper item = toObject(cursor);
+        ClientInfo item = toObject(cursor);
         cursor.close();
         return item;
     }
 
-    public boolean save(long id, ClientInfo store) {
+    public boolean save(ClientInfo store) {
         ContentValues values = new ContentValues();
         values.put(ClientInfoSqliteHelper.C_HOSTNAME, store.host);
         values.put(ClientInfoSqliteHelper.C_PORT, store.port);
         values.put(ClientInfoSqliteHelper.C_SERVICENAME, store.name);
 
-        int count = database.update(ClientInfoSqliteHelper.TABLE,
+        boolean success;
+        if(ClientInfo.isEmpty(store)) {
+            long insertId = create(values);
+
+            if(insertId == -1) {
+                // Error occured
+                success = false;
+            } else {
+                store.id = insertId;
+                success = true;
+            }
+        } else {
+            int count = update(store.id, values);
+            success = (count > 0);
+        }
+
+        return success;
+    }
+
+    private long create(ContentValues values) {
+        return database.insert(ClientInfoSqliteHelper.TABLE, null, values);
+    }
+
+    private int update(long id, ContentValues values) {
+        return database.update(ClientInfoSqliteHelper.TABLE,
                 values, ClientInfoSqliteHelper.C_ID + " = " + id, null);
-        return (count > 0);
     }
 
     public boolean delete(long id) {
@@ -88,8 +111,8 @@ public class ClientInfoDataSource {
         return (count > 0);
     }
 
-    private ClientInfoDbWrapper toObject(Cursor cursor) {
-        ClientInfoDbWrapper item = new ClientInfoDbWrapper();
+    private ClientInfo toObject(Cursor cursor) {
+        ClientInfo item = new ClientInfo();
         item.id = cursor.getLong(0);
         item.host = cursor.getString(1);
         item.port = cursor.getInt(2);

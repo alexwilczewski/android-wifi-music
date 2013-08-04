@@ -14,9 +14,8 @@ import android.widget.AdapterView;
 import android.widget.Button;
 import android.widget.EditText;
 import android.widget.ListView;
-import com.WifiAudioDistribution.ClientInfo;
 import com.WifiAudioDistribution.Db.ClientInfoDataSource;
-import com.WifiAudioDistribution.Db.ClientInfoDbWrapper;
+import com.WifiAudioDistribution.Networking.ClientInfo;
 import com.WifiAudioDistribution.NsdAdapter;
 import com.WifiAudioDistribution.R;
 
@@ -37,8 +36,8 @@ public class ManageConnectionsActivity extends Activity {
         @Override
         public void handleMessage(Message msg) {
             if(mNsdAdapter != null) {
-                ClientInfoDbWrapper clientInfo = (ClientInfoDbWrapper) msg.obj;
-                mNsdAdapter.add(clientInfo);
+                ClientInfo item = (ClientInfo) msg.obj;
+                mNsdAdapter.add(item);
                 mNsdAdapter.notifyDataSetChanged();
             }
         }
@@ -66,7 +65,7 @@ public class ManageConnectionsActivity extends Activity {
                 EditText port = (EditText) findViewById(R.id.port);
                 EditText servicename = (EditText) findViewById(R.id.servicename_edt);
 
-                ClientInfoDbWrapper item = ClientInfoDbWrapper.getEmpty();
+                ClientInfo item = ClientInfo.getEmpty();
                 item.host = hostname.getText().toString();
                 item.port = Integer.parseInt(port.getText().toString());
                 item.name = servicename.getText().toString();
@@ -87,7 +86,7 @@ public class ManageConnectionsActivity extends Activity {
 
         mConnectionsList.setOnItemClickListener(new AdapterView.OnItemClickListener() {
             public void onItemClick(AdapterView<?> parent, View view, int position, long id) {
-                ClientInfoDbWrapper item = (ClientInfoDbWrapper) mConnectionsList.getItemAtPosition(position);
+                ClientInfo item = (ClientInfo) mConnectionsList.getItemAtPosition(position);
                 modifyClient(item.id);
             }
         });
@@ -124,7 +123,7 @@ public class ManageConnectionsActivity extends Activity {
         finish();
     }
 
-    public void resolvedClient(ClientInfoDbWrapper clientInfo) {
+    public void resolvedClient(ClientInfo clientInfo) {
         Message msg = new Message();
         msg.obj = clientInfo;
         mNsdAdapterHandler.sendMessage(msg);
@@ -161,8 +160,8 @@ public class ManageConnectionsActivity extends Activity {
     public void refreshConnectionList() {
         mNsdAdapter.clear();
 
-        List<ClientInfoDbWrapper> clients = mDataSource.getAll();
-        Iterator<ClientInfoDbWrapper> itr = clients.iterator();
+        List<ClientInfo> clients = mDataSource.getAll();
+        Iterator<ClientInfo> itr = clients.iterator();
         while(itr.hasNext()) {
             resolvedClient(itr.next());
         }

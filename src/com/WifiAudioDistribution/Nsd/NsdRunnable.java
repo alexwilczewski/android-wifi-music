@@ -2,10 +2,9 @@ package com.WifiAudioDistribution.Nsd;
 
 import android.net.nsd.NsdServiceInfo;
 import android.util.Log;
-import com.WifiAudioDistribution.ClientInfo;
 import com.WifiAudioDistribution.ClientManager;
-import com.WifiAudioDistribution.Db.ClientInfoDbWrapper;
 import com.WifiAudioDistribution.MyActivity;
+import com.WifiAudioDistribution.Networking.ClientInfo;
 
 public class NsdRunnable implements Runnable {
     private final String TAG = "MYAPP:NsdRunnable";
@@ -33,7 +32,7 @@ public class NsdRunnable implements Runnable {
         mNsdHelper.registerService(mClientManager.getPort());
         mNsdHelper.setOnResolvedService(new NsdHelper.OnResolvedServiceListener() {
             public void onResolve(NsdServiceInfo serviceInfo) {
-                ClientInfoDbWrapper clientInfo = new ClientInfoDbWrapper();
+                ClientInfo clientInfo = ClientInfo.getEmpty();
                 clientInfo.host = serviceInfo.getHost().getHostAddress();
                 clientInfo.name = serviceInfo.getServiceName();
                 clientInfo.port = serviceInfo.getPort();

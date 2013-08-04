@@ -13,7 +13,7 @@ import android.widget.Button;
 import android.widget.ListView;
 import com.WifiAudioDistribution.Activities.ManageConnectionsActivity;
 import com.WifiAudioDistribution.Db.ClientInfoDataSource;
-import com.WifiAudioDistribution.Db.ClientInfoDbWrapper;
+import com.WifiAudioDistribution.Networking.ClientInfo;
 import com.WifiAudioDistribution.Nsd.NsdRunnable;
 
 import java.io.File;
@@ -41,7 +41,7 @@ public class MyActivity extends Activity {
         @Override
         public void handleMessage(Message msg) {
             if(mNsdAdapter != null) {
-                ClientInfoDbWrapper item = (ClientInfoDbWrapper) msg.obj;
+                ClientInfo item = (ClientInfo) msg.obj;
                 mNsdAdapter.add(item);
                 mNsdAdapter.notifyDataSetChanged();
             }
@@ -53,7 +53,7 @@ public class MyActivity extends Activity {
         public void handleMessage(Message msg) {
             int count = mNsdAdapter.getCount();
             for(int i = 0; i<count; i++) {
-                ClientInfoDbWrapper item = mNsdAdapter.getItem(i);
+                ClientInfo item = mNsdAdapter.getItem(i);
 //                item.linkAvailable();
             }
             mNsdAdapter.notifyDataSetChanged();
@@ -169,8 +169,8 @@ public class MyActivity extends Activity {
     public void refreshConnectionList() {
         mNsdAdapter.clear();
 
-        List<ClientInfoDbWrapper> clients = mDataSource.getAll();
-        Iterator<ClientInfoDbWrapper> itr = clients.iterator();
+        List<ClientInfo> clients = mDataSource.getAll();
+        Iterator<ClientInfo> itr = clients.iterator();
         while(itr.hasNext()) {
             resolvedClient(itr.next());
         }
@@ -187,7 +187,7 @@ public class MyActivity extends Activity {
         mDiscoveryThread.start();
     }
 
-    public void resolvedClient(ClientInfoDbWrapper clientInfo) {
+    public void resolvedClient(ClientInfo clientInfo) {
         mClientManager.serviceResolved(clientInfo);
 
         Message msg = new Message();

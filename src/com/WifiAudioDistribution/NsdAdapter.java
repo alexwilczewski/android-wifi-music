@@ -8,9 +8,9 @@ import android.view.View;
 import android.view.ViewGroup;
 import android.widget.ArrayAdapter;
 import android.widget.TextView;
-import com.WifiAudioDistribution.Db.ClientInfoDbWrapper;
+import com.WifiAudioDistribution.Networking.ClientInfo;
 
-public class NsdAdapter extends ArrayAdapter<ClientInfoDbWrapper> {
+public class NsdAdapter extends ArrayAdapter<ClientInfo> {
     private final String TAG = "MYAPP:NsdAdapter";
 
     private Context mActivity;
@@ -30,7 +30,7 @@ public class NsdAdapter extends ArrayAdapter<ClientInfoDbWrapper> {
             v = vi.inflate(viewId, null);
         }
 
-        ClientInfoDbWrapper clientInfo = getItem(position);
+        ClientInfo clientInfo = getItem(position);
 
         TextView hostnamePortText = (TextView) v.findViewById(R.id.hostname_port);
         TextView servicenameText = (TextView) v.findViewById(R.id.servicename);

@@ -4,6 +4,7 @@ import android.content.Context;
 import android.net.nsd.NsdManager;
 import android.util.Log;
 import com.WifiAudioDistribution.Media.MediaContainer;
+import com.WifiAudioDistribution.Networking.ClientInfo;
 import com.WifiAudioDistribution.Networking.PodRunnable;
 import com.WifiAudioDistribution.Networking.ReadingClientRunnable;
 import com.WifiAudioDistribution.Networking.SendingClientRunnable;

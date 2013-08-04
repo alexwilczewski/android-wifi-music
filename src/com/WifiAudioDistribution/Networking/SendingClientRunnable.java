@@ -1,7 +1,6 @@
 package com.WifiAudioDistribution.Networking;
 
 import android.util.Log;
-import com.WifiAudioDistribution.ClientInfo;
 import com.WifiAudioDistribution.ClientManager;
 
 import java.io.*;

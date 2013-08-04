@@ -4,23 +4,15 @@ import android.app.Activity;
 import android.content.Intent;
 import android.content.pm.ActivityInfo;
 import android.os.Bundle;
-import android.os.Handler;
-import android.os.Message;
 import android.support.v4.app.NavUtils;
 import android.util.Log;
 import android.view.MenuItem;
 import android.view.View;
 import android.widget.Button;
 import android.widget.EditText;
-import android.widget.ListView;
-import com.WifiAudioDistribution.ClientInfo;
 import com.WifiAudioDistribution.Db.ClientInfoDataSource;
-import com.WifiAudioDistribution.Db.ClientInfoDbWrapper;
-import com.WifiAudioDistribution.NsdAdapter;
+import com.WifiAudioDistribution.Networking.ClientInfo;
 import com.WifiAudioDistribution.R;
-
-import java.util.Iterator;
-import java.util.List;
 
 public class EditConnectionActivity extends Activity {
     private static final String TAG = "MYAPP:EditConnectionActivity";
@@ -28,7 +20,7 @@ public class EditConnectionActivity extends Activity {
     public static final String MESSAGE_CLIENT_ID = "com.WifiAudioDistribution.CLIENT_ID";
 
     private ClientInfoDataSource mDataSource;
-    private ClientInfoDbWrapper mEditClientInfo;
+    private ClientInfo mEditClientInfo;
 
     @Override
     public void onCreate(Bundle savedInstanceState) {
@@ -51,7 +43,7 @@ public class EditConnectionActivity extends Activity {
 
         mEditClientInfo = mDataSource.find(id);
 
-        if(ClientInfoDbWrapper.isEmpty(mEditClientInfo)) {
+        if(ClientInfo.isEmpty(mEditClientInfo)) {
             Log.d(TAG, "Client does not exist.");
             endActivity();
         }
@@ -77,7 +69,7 @@ public class EditConnectionActivity extends Activity {
                 mEditClientInfo.port = Integer.parseInt(port.getText().toString());
                 mEditClientInfo.name = servicename.getText().toString();
 
-                mDataSource.save(mEditClientInfo.id, mEditClientInfo);
+                mDataSource.save(mEditClientInfo);
 
                 endActivity();
             }

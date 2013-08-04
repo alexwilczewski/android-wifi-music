@@ -1,18 +1,16 @@
-package com.WifiAudioDistribution.Networking;
-
-import com.WifiAudioDistribution.ClientManager;
+package com.WifiAudioDistribution;
 
 import java.io.File;
 import java.net.Socket;
 import java.util.ArrayList;
 import java.util.List;
 
-public class PodRunnable implements Runnable {
+public class Pod {
     private ClientManager mManager;
     private List<Socket> mSockets;
     private File mFile;
 
-    public PodRunnable(ClientManager manager) {
+    public Pod(ClientManager manager) {
         mManager = manager;
         mSockets = new ArrayList<Socket>();
     }
