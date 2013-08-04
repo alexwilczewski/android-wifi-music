@@ -23,5 +23,10 @@
         android:layout_width="wrap_content"
         android:layout_height="wrap_content"
         android:text="@string/manage_connections_btn" />
+
+    <Button android:id="@+id/stop_playback"
+            android:layout_width="wrap_content"
+            android:layout_height="wrap_content"
+            android:text="Stop Playback" />
 </LinearLayout>
 

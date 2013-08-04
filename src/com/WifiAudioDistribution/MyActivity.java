@@ -54,7 +54,7 @@ public class MyActivity extends Activity {
             int count = mNsdAdapter.getCount();
             for(int i = 0; i<count; i++) {
                 ClientInfoDbWrapper item = mNsdAdapter.getItem(i);
-                item.linkAvailable();
+//                item.linkAvailable();
             }
             mNsdAdapter.notifyDataSetChanged();
         }
@@ -99,6 +99,7 @@ public class MyActivity extends Activity {
         Button mMusicBtn = (Button) findViewById(R.id.music);
         Button mManageConnectionsBtn = (Button) findViewById(R.id.manage_connections);
         Button mRediscovery = (Button) findViewById(R.id.rediscovery);
+        Button mStopPlayback = (Button) findViewById(R.id.stop_playback);
 
         mMusicBtn.setOnClickListener(new Button.OnClickListener() {
             public void onClick(View v) {
@@ -117,6 +118,12 @@ public class MyActivity extends Activity {
                 refreshAvailability();
             }
         });
+
+        mStopPlayback.setOnClickListener(new Button.OnClickListener() {
+            public void onClick(View v) {
+                stopPlayback();
+            }
+        });
     }
 
     public void modifyConnections() {
@@ -133,6 +140,10 @@ public class MyActivity extends Activity {
         startActivityForResult(intent, ACTIVITY_CHOOSE_FILE);
     }
 
+    public void stopPlayback() {
+        mClientManager.stopPlayback();
+    }
+
     @Override
     protected void onActivityResult(int requestCode, int resultCode, Intent data) {
         switch(requestCode) {
@@ -143,6 +154,7 @@ public class MyActivity extends Activity {
                     Log.i(TAG, "PATH: "+filePath);
 
                     mClientManager.initializeSendingThread(new File(filePath));
+//                    mClientManager.startPod(new File(filePath));
                 }
             }
             case ACTIVITY_MANAGE_CONNECTIONS: {

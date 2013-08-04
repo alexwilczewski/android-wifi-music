@@ -7,6 +7,7 @@ import com.WifiAudioDistribution.ClientManager;
 import java.io.*;
 import java.net.Socket;
 import java.util.*;
+import java.util.concurrent.LinkedBlockingQueue;
 
 public class SendingClientRunnable implements Runnable {
     private static final String TAG = "MYAPP:SendingClientRunnable";
@@ -14,10 +15,18 @@ public class SendingClientRunnable implements Runnable {
     private ClientManager tManager;
     private ArrayList<Socket> tSockets;
     private File tPlaybackFile;
+    private boolean tSocketsOpened;
+    private LinkedBlockingQueue<Integer> tMessages;
 
     public SendingClientRunnable(ClientManager manager, File playbackFile) {
         tManager = manager;
         tPlaybackFile = playbackFile;
+        tSocketsOpened = false;
+        tMessages = new LinkedBlockingQueue<Integer>();
+    }
+
+    public void stopPlayback() {
+        tMessages.add(new Integer(ClientManager.STOP_PLAYBACK));
     }
 
     public void initializeSockets() {
@@ -36,13 +45,20 @@ public class SendingClientRunnable implements Runnable {
                 Log.e(TAG, "Connection failed. [" + host + ":" + port + "]");
             }
         }
+        tSocketsOpened = true;
     }
 
     public void closeSockets() {
+        tSocketsOpened = false;
+        // Attempt to close sockets in case server didn't close them for us
         Iterator<Socket> itr = tSockets.iterator();
         while(itr.hasNext()) {
             try {
-                itr.next().close();
+                Socket s = itr.next();
+                if(s.isConnected() && !s.isClosed()) {
+                    s.shutdownOutput();
+                    s.close();
+                }
             } catch(IOException e) {
                 Log.e(TAG, "Could not close socket.", e);
             }
@@ -179,29 +195,63 @@ public class SendingClientRunnable implements Runnable {
 
                         int b = is.read();
                         if(b == ClientManager.BUFFER_READY) {
-                            flagSendStart = true;
+//                            flagSendStart = true;
                         }
 
                         itrCnt++;
                     }
                 }
             }
+
             ios.close();
-
-
-            itr = tSockets.iterator();
-            while(itr.hasNext()) {
-                Socket s = itr.next();
-                s.shutdownOutput();
-            }
         } catch(FileNotFoundException e) {
             Log.e(TAG, "File not found", e);
         } catch(IOException e) {
             Log.e(TAG, "IOException", e);
         }
 
+        try {
+            Thread.sleep(500);
 
-        // Close sockets
-//        closeSockets();
+            Log.d(TAG, "File read. Sending start playback.");
+            sendMessage(ClientManager.START_PLAYBACK);
+        } catch(InterruptedException e) { }
+
+        while(!Thread.currentThread().isInterrupted()) {
+            // Check message queue. If there is anything, send message
+            if(tMessages.size() > 0) {
+                Integer message = tMessages.poll();
+                sendMessage(message.intValue());
+            }
+
+            try {
+                Thread.sleep(500);
+            } catch(InterruptedException e) { }
+        }
+
+        closeSockets();
+    }
+
+    public void sendMessage(int message) {
+        Iterator<Socket> itr = tSockets.iterator();
+        while(itr.hasNext()) {
+            try {
+                Socket s = itr.next();
+                OutputStream os = s.getOutputStream();
+                InputStream is = s.getInputStream();
+
+                int read;
+                do {
+                    Log.d(TAG, "Send Message: "+message);
+                    os.write(message);
+                    os.flush();
+
+                    read = is.read();
+                    Log.d(TAG, "Pong Message: "+read);
+                } while((read) == ClientManager.UNKNOWN_MESSAGE);
+            } catch(IOException e) {
+                Log.e(TAG, "Could not send message.", e);
+            }
+        }
     }
 }

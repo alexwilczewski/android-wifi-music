@@ -36,6 +36,12 @@ public class StreamingFile {
         tmpBytesStored = 0;
     }
 
+    public void tearDown() {
+        tmpBytesStored = 0;
+        mFile.delete();
+        mTmpFile.delete();
+    }
+
     public synchronized void write(byte[] data, int len) {
         BufferedOutputStream bout = null;
         try {

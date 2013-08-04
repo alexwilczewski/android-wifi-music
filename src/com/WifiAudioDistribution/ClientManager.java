@@ -3,6 +3,8 @@ package com.WifiAudioDistribution;
 import android.content.Context;
 import android.net.nsd.NsdManager;
 import android.util.Log;
+import com.WifiAudioDistribution.Media.MediaContainer;
+import com.WifiAudioDistribution.Networking.PodRunnable;
 import com.WifiAudioDistribution.Networking.ReadingClientRunnable;
 import com.WifiAudioDistribution.Networking.SendingClientRunnable;
 
@@ -23,22 +25,29 @@ public class ClientManager {
     public static final int START_PLAYBACK = 3;
     public static final int CONTINUE = 4;
     public static final int UNKNOWN_MESSAGE = 5;
+    public static final int STOP_PLAYBACK = 6;
+    public static final int FINISH_SENDING = 7;
+    public static final int TEST = 8;
 
     public static final int KBYTE = 1024;
-    public static final int BUFFER_READY_SIZE = 50*KBYTE;
+    public static final long BUFFER_READY_SIZE = 100*KBYTE;
 
     public ServerSocket mServerSocket;
     public int mLocalPort;
 
     public HashMap<String, ClientInfo> mFoundServices;
+    public PodRunnable mPod;
+    public SendingClientRunnable mSendingClientRunnable;
 
     public Thread mListeningThread;
     public Thread mSendingThread;
+    public Thread mPodThread;
 
     public MyActivity mActivity;
 
     public ClientManager(MyActivity context) {
         mActivity = context;
+        mPod = new PodRunnable(this);
     }
 
     public NsdManager getNsdManager() {
@@ -70,10 +79,22 @@ public class ClientManager {
         mListeningThread.start();
     }
 
+    public void startPod(File playbackFile) {
+        mPod.setFile(playbackFile);
+        mPodThread = new Thread(mPod);
+        mPodThread.start();
+    }
+
     public void initializeSendingThread(File playbackFile) {
         // Create thread for ServerSocket to send on
-        mSendingThread = new Thread(new SendingClientRunnable(this, playbackFile));
+        mSendingClientRunnable = new SendingClientRunnable(this, playbackFile);
+        mSendingThread = new Thread(mSendingClientRunnable);
         mSendingThread.start();
+    }
+
+    public void stopPlayback() {
+//        mPod.stopPlayback();
+        mSendingClientRunnable.stopPlayback();
     }
 
     public void serviceResolved(ClientInfo clientInfo) {
@@ -86,7 +107,18 @@ public class ClientManager {
 
     public void tearDown() {
         Log.d(TAG, "Tear Down");
-        mListeningThread.interrupt();
+
+        if(mListeningThread != null) {
+            mListeningThread.interrupt();
+        }
+
+        if(mPodThread != null) {
+            mPodThread.interrupt();
+        }
+
+        if(mSendingThread != null) {
+            mSendingThread.interrupt();
+        }
 
         try {
             if(mServerSocket.isBound()) {
@@ -141,10 +173,13 @@ public class ClientManager {
             Log.d(TAG, "Listening tear down");
             Log.d(TAG, "mThread Size: "+mThreads.size());
 
+            MediaContainer.getInstance().stop();
+
             Iterator<Thread> itr = mThreads.iterator();
             while(itr.hasNext()) {
                 itr.next().interrupt();
             }
+
             Log.d(TAG, "Listening end tear down");
         }
     }

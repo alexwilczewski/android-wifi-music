@@ -1,11 +1,11 @@
 package com.WifiAudioDistribution.Networking;
 
-import android.os.Looper;
 import android.util.Log;
 import com.WifiAudioDistribution.ClientManager;
+import com.WifiAudioDistribution.Media.MediaContainer;
 import com.WifiAudioDistribution.MyActivity;
 import com.WifiAudioDistribution.StreamingFile;
-import com.WifiAudioDistribution.StreamingMediaPlayer;
+import com.WifiAudioDistribution.Media.StreamingMediaPlayer;
 
 import java.io.ByteArrayOutputStream;
 import java.io.IOException;
@@ -19,53 +19,56 @@ public class ReadingClientRunnable implements Runnable {
 
     private final String StreamingFileName = "StreamingFile";
 
-    private Socket mSocket;
+    private Socket mServerSocket;
     private MyActivity mActivity;
-    private StreamingMediaPlayer smp;
-    private StreamingFile streamFile;
 
     public ReadingClientRunnable(MyActivity activity, Socket socket) {
         mActivity = activity;
-        mSocket = socket;
+        mServerSocket = socket;
     }
 
     public void run() {
+        // Read in some data
+        // this data can be:
+        //  a message
+        //  file data
+
+        // how long should the socket remain open?
+        // socket should remain open till end of thread lifetime
+        // bc media player is handled by MediaContainer
+
+        MediaContainer mc = MediaContainer.getInstance();
+        mc.resetStopped();
+
         byte[] buffer = new byte[4096];
         int read = 0;
         InputStream in;
         OutputStream out;
-        ByteArrayOutputStream ous = new ByteArrayOutputStream();
         try {
-            in = mSocket.getInputStream();
-            out = mSocket.getOutputStream();
+            in = mServerSocket.getInputStream();
+            out = mServerSocket.getOutputStream();
 
-            boolean readingInFile = false;
             boolean bufferReadySent = false;
-            boolean playbackStarted = false;
-            while((read = in.read(buffer)) != -1) {
+            while((read = in.read(buffer)) != -1 && !Thread.currentThread().isInterrupted()) {
                 if(read == 1) {
-                    // We've got a message...
-                    // Buffer could receive 1 byte without a message
-                    // @TODO: Figure out best way to send messages within data transfer
                     int message = buffer[0];
+
                     Log.d(TAG, "Message: " + message);
                     if(message == ClientManager.SENDING_FILE) {
                         Log.d(TAG, "Begin Reading in the file");
-                        startUpReadingInFile();
-                        readingInFile = true;
+
+                        mc.setUp(new StreamingFile(mActivity.getCacheDir(), StreamingFileName));
                     } else if(message == ClientManager.START_PLAYBACK) {
-                        if(!playbackStarted) {
-                            playbackStarted = true;
-                            Log.d(TAG, "Start Playback");
+                        Log.d(TAG, "Start Playback");
 
+                        mc.start();
 
-                            Log.d(TAG, "Streamfile Tmpsize: "+streamFile.tmpsize());
-                            streamFile.transfer();
-                            Log.d(TAG, "File Transferred");
-                            smp.reassociateStreamFile();
-                            smp.start();
-                            Log.d(TAG, "Started");
-                        }
+                        out.write(ClientManager.TEST);
+                        out.flush();
+                        continue;
+                    } else if(message == ClientManager.STOP_PLAYBACK) {
+                        Log.d(TAG, "Stop Playback");
+                        mc.stop();
 
                         out.write(ClientManager.CONTINUE);
                         out.flush();
@@ -75,10 +78,10 @@ public class ReadingClientRunnable implements Runnable {
                         out.flush();
                         continue;
                     }
-                } else if(readingInFile) {
-                    streamFile.write(buffer, read);
+                } else if(mc.isSetUp()) {
+                    mc.getStreamingFile().write(buffer, read);
 
-                    if(!bufferReadySent && streamFile.tmpsize() >= ClientManager.BUFFER_READY_SIZE) {
+                    if(!bufferReadySent && mc.bufferReady(ClientManager.BUFFER_READY_SIZE)) {
                         Log.d(TAG, "Send Buffer Ready");
                         out.write(ClientManager.BUFFER_READY);
                         out.flush();
@@ -92,40 +95,14 @@ public class ReadingClientRunnable implements Runnable {
             }
             Log.d(TAG, "Read: "+read);
             in.close();
-
-            if(readingInFile) {
-                streamFile.transfer();
-                smp.reassociateStreamFile();
-            }
-
         } catch(IOException e) {
             Log.e(TAG, "Could not read in from socket.", e);
         }
 
         try {
-            mSocket.close();
+            mServerSocket.close();
         } catch(IOException e) {
             Log.e(TAG, "Could not close socket.", e);
         }
-
-        if(smp != null) {
-            Log.d(TAG, "Waiting to interrupt");
-
-            while(!Thread.currentThread().isInterrupted()) { }
-            smp.tearDown();
-
-            Log.d(TAG, "Thread interrupted.");
-        }
-    }
-
-    public void startUpReadingInFile() {
-        smp = new StreamingMediaPlayer();
-        smp.setOnPlayingSecondListener(new StreamingMediaPlayer.OnPlayingSecondListener() {
-            @Override
-            public void onPlayingSecond(StreamingMediaPlayer smp) { }
-        });
-
-        streamFile = new StreamingFile(mActivity.getCacheDir(), StreamingFileName);
-        smp.setStreamFile(streamFile);
     }
 }
