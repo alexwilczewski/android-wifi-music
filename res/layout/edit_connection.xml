@@ -4,19 +4,87 @@
               android:orientation="vertical"
               android:layout_width="match_parent"
               android:layout_height="match_parent">
-    <include android:id="@+id/layout_connection"
-             layout="@layout/connection"
-             android:layout_width="wrap_content"
-             android:layout_height="wrap_content" />
+
+    <LinearLayout android:id="@+id/title_host_line"
+                  android:layout_width="match_parent"
+                  android:layout_height="wrap_content"
+                  android:orientation="horizontal">
+        <TextView android:id="@+id/hostname_title"
+                  android:layout_width="0dp"
+                  android:layout_height="wrap_content"
+                  android:layout_weight=".70"
+                  android:paddingLeft="10dp"
+                  android:textSize="16sp"
+                  android:text="@string/hostname_title" />
+
+        <TextView android:id="@+id/port_title"
+                  android:layout_width="0dp"
+                  android:layout_height="wrap_content"
+                  android:layout_weight=".30"
+                  android:paddingLeft="10dp"
+                  android:textSize="16sp"
+                  android:text="@string/port_title" />
+    </LinearLayout>
+
+    <LinearLayout android:id="@+id/edit_host_line"
+                  android:layout_width="match_parent"
+                  android:layout_height="wrap_content"
+                  android:orientation="horizontal"
+                  android:layout_below="@id/title_host_line">
+        <EditText android:id="@+id/hostname_input"
+                  android:layout_width="0dp"
+                  android:layout_height="wrap_content"
+                  android:layout_weight=".70"
+                  android:layout_marginRight="10dp"
+                  android:textSize="16sp"
+                  android:singleLine="true"
+                  android:hint="@string/hostname_title" />
+
+        <EditText android:id="@+id/port_input"
+                  android:layout_width="0dp"
+                  android:layout_height="wrap_content"
+                  android:layout_weight=".30"
+                  android:textSize="16sp"
+                  android:singleLine="true"
+                  android:hint="@string/port_title"
+                  android:numeric="integer" />
+    </LinearLayout>
+
+    <TextView android:id="@+id/servicename_title"
+              android:layout_width="wrap_content"
+              android:layout_height="wrap_content"
+              android:layout_below="@id/edit_host_line"
+              android:paddingLeft="10dp"
+              android:textSize="16sp"
+              android:text="@string/servicename_title" />
+
+    <EditText android:id="@+id/servicename_input"
+              android:layout_width="match_parent"
+              android:layout_height="wrap_content"
+              android:layout_below="@id/servicename_title"
+              android:textSize="16sp"
+              android:singleLine="true"
+              android:hint="@string/servicename_title"
+              android:text="" />
+
+    <EditText android:id="@+id/pod_id_input"
+              android:layout_width="100sp"
+              android:layout_height="wrap_content"
+              android:layout_below="@id/servicename_input"
+              android:textSize="16sp"
+              android:singleLine="true"
+              android:hint="PodID"
+              android:numeric="integer" />
 
     <Button android:id="@+id/save_service"
             android:layout_width="wrap_content"
             android:layout_height="wrap_content"
-            android:layout_below="@id/layout_connection"
+            android:layout_below="@id/servicename_input"
             android:layout_alignParentRight="true"
             android:paddingLeft="25dp"
             android:paddingRight="25dp"
             android:text="@string/save_edit_service_btn" />
+
     <Button android:id="@+id/delete_service"
             android:layout_width="wrap_content"
             android:layout_height="wrap_content"

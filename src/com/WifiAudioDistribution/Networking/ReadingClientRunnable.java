@@ -1,13 +1,11 @@
 package com.WifiAudioDistribution.Networking;
 
 import android.util.Log;
+import com.WifiAudioDistribution.Activities.MainActivity;
 import com.WifiAudioDistribution.ClientManager;
 import com.WifiAudioDistribution.Media.MediaContainer;
-import com.WifiAudioDistribution.MyActivity;
 import com.WifiAudioDistribution.StreamingFile;
-import com.WifiAudioDistribution.Media.StreamingMediaPlayer;
 
-import java.io.ByteArrayOutputStream;
 import java.io.IOException;
 import java.io.InputStream;
 import java.io.OutputStream;
@@ -20,9 +18,9 @@ public class ReadingClientRunnable implements Runnable {
     private final String StreamingFileName = "StreamingFile";
 
     private Socket mServerSocket;
-    private MyActivity mActivity;
+    private MainActivity mActivity;
 
-    public ReadingClientRunnable(MyActivity activity, Socket socket) {
+    public ReadingClientRunnable(MainActivity activity, Socket socket) {
         mActivity = activity;
         mServerSocket = socket;
     }

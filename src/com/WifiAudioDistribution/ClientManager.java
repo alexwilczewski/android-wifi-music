@@ -3,9 +3,9 @@ package com.WifiAudioDistribution;
 import android.content.Context;
 import android.net.nsd.NsdManager;
 import android.util.Log;
+import com.WifiAudioDistribution.Activities.MainActivity;
 import com.WifiAudioDistribution.Media.MediaContainer;
 import com.WifiAudioDistribution.Networking.ClientInfo;
-import com.WifiAudioDistribution.Networking.PodRunnable;
 import com.WifiAudioDistribution.Networking.ReadingClientRunnable;
 import com.WifiAudioDistribution.Networking.SendingClientRunnable;
 
@@ -36,19 +36,12 @@ public class ClientManager {
     public ServerSocket mServerSocket;
     public int mLocalPort;
 
-    public HashMap<String, ClientInfo> mFoundServices;
-    public PodRunnable mPod;
-    public SendingClientRunnable mSendingClientRunnable;
-
     public Thread mListeningThread;
-    public Thread mSendingThread;
-    public Thread mPodThread;
 
-    public MyActivity mActivity;
+    public MainActivity mActivity;
 
-    public ClientManager(MyActivity context) {
+    public ClientManager(MainActivity context) {
         mActivity = context;
-        mPod = new PodRunnable(this);
     }
 
     public NsdManager getNsdManager() {
@@ -56,7 +49,6 @@ public class ClientManager {
     }
 
     public void initializeServerSocket() {
-        mFoundServices = new HashMap<String, ClientInfo>();
         try {
             // Initialize a server socket on the next available port.
             mServerSocket = new ServerSocket(PORT);
@@ -80,45 +72,11 @@ public class ClientManager {
         mListeningThread.start();
     }
 
-    public void startPod(File playbackFile) {
-        mPod.setFile(playbackFile);
-        mPodThread = new Thread(mPod);
-        mPodThread.start();
-    }
-
-    public void initializeSendingThread(File playbackFile) {
-        // Create thread for ServerSocket to send on
-        mSendingClientRunnable = new SendingClientRunnable(this, playbackFile);
-        mSendingThread = new Thread(mSendingClientRunnable);
-        mSendingThread.start();
-    }
-
-    public void stopPlayback() {
-//        mPod.stopPlayback();
-        mSendingClientRunnable.stopPlayback();
-    }
-
-    public void serviceResolved(ClientInfo clientInfo) {
-        mFoundServices.put(clientInfo.host, clientInfo);
-    }
-
-    public Collection<ClientInfo> getServices() {
-        return mFoundServices.values();
-    }
-
     public void tearDown() {
         Log.d(TAG, "Tear Down");
 
         if(mListeningThread != null) {
             mListeningThread.interrupt();
-        }
-
-        if(mPodThread != null) {
-            mPodThread.interrupt();
-        }
-
-        if(mSendingThread != null) {
-            mSendingThread.interrupt();
         }
 
         try {

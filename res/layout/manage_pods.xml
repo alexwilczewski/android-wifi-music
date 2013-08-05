@@ -3,14 +3,17 @@
 <RelativeLayout xmlns:android="http://schemas.android.com/apk/res/android"
                 android:layout_width="match_parent"
                 android:layout_height="match_parent">
-    <ListView android:id="@+id/connection_list"
-              android:layout_width="wrap_content"
-              android:layout_height="wrap_content" />
 
-    <Button android:id="@+id/add_service"
+    <ListView android:id="@+id/manage_pod_list"
+              android:layout_width="wrap_content"
+              android:layout_height="wrap_content"
+              android:layout_alignParentTop="true"
+              android:layout_alignParentLeft="true" />
+
+    <Button android:id="@+id/add_pod"
             android:layout_width="wrap_content"
             android:layout_height="wrap_content"
-            android:layout_below="@id/connection_list"
             android:layout_alignParentRight="true"
-            android:text="@string/add_service_btn" />
+            android:layout_below="@id/manage_pod_list"
+            android:text="Add Pod" />
 </RelativeLayout>

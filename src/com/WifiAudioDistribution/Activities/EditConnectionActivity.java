@@ -21,6 +21,12 @@ public class EditConnectionActivity extends Activity {
 
     private ClientInfoDataSource mDataSource;
     private ClientInfo mEditClientInfo;
+    private boolean mNewConnection;
+
+    private EditText hostnameInput;
+    private EditText portInput;
+    private EditText servicenameInput;
+    private EditText podIdInput;
 
     @Override
     public void onCreate(Bundle savedInstanceState) {
@@ -35,39 +41,41 @@ public class EditConnectionActivity extends Activity {
 
         setContentView(R.layout.edit_connection);
 
+        hostnameInput = (EditText) findViewById(R.id.hostname_input);
+        portInput = (EditText) findViewById(R.id.port_input);
+        servicenameInput = (EditText) findViewById(R.id.servicename_input);
+        podIdInput = (EditText) findViewById(R.id.pod_id_input);
+
         Intent startingIntent = getIntent();
         long id = startingIntent.getLongExtra(EditConnectionActivity.MESSAGE_CLIENT_ID, 0);
 
         mDataSource = new ClientInfoDataSource(this);
         mDataSource.open();
 
-        mEditClientInfo = mDataSource.find(id);
+        if(id == ClientInfo.NON_EXISTANT_ID) {
+            mNewConnection = true;
+            Log.d(TAG, "Adding new Connection");
+            mEditClientInfo = ClientInfo.getEmpty();
+        } else {
+            mNewConnection = false;
+            mEditClientInfo = mDataSource.find(id);
+            Log.d(TAG, "Editing Connection: id("+mEditClientInfo.id+")");
 
-        if(ClientInfo.isEmpty(mEditClientInfo)) {
-            Log.d(TAG, "Client does not exist.");
-            endActivity();
+            hostnameInput.setText(mEditClientInfo.host);
+            portInput.setText(""+mEditClientInfo.port);
+            servicenameInput.setText(mEditClientInfo.name);
+            podIdInput.setText(""+mEditClientInfo.pod_id);
         }
-
-        EditText hostname = (EditText) findViewById(R.id.hostname);
-        EditText port = (EditText) findViewById(R.id.port);
-        EditText servicename = (EditText) findViewById(R.id.servicename_edt);
-
-        hostname.setText(mEditClientInfo.host);
-        port.setText(""+mEditClientInfo.port);
-        servicename.setText(mEditClientInfo.name);
 
         Button mSaveService = (Button) findViewById(R.id.save_service);
         mSaveService.setOnClickListener(new Button.OnClickListener() {
             @Override
             public void onClick(View view) {
                 // Modify in DB
-                EditText hostname = (EditText) findViewById(R.id.hostname);
-                EditText port = (EditText) findViewById(R.id.port);
-                EditText servicename = (EditText) findViewById(R.id.servicename_edt);
-
-                mEditClientInfo.host = hostname.getText().toString();
-                mEditClientInfo.port = Integer.parseInt(port.getText().toString());
-                mEditClientInfo.name = servicename.getText().toString();
+                mEditClientInfo.host = hostnameInput.getText().toString();
+                mEditClientInfo.port = Integer.parseInt(portInput.getText().toString());
+                mEditClientInfo.name = servicenameInput.getText().toString();
+                mEditClientInfo.pod_id = Integer.parseInt(podIdInput.getText().toString());
 
                 mDataSource.save(mEditClientInfo);
 
@@ -85,6 +93,9 @@ public class EditConnectionActivity extends Activity {
                 endActivity();
             }
         });
+        if(mNewConnection) {
+            mDeleteService.setEnabled(false);
+        }
     }
 
     @Override

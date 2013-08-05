@@ -11,6 +11,7 @@ public class ClientInfo {
     public int port;
     public String name;
     public boolean available;
+    public int pod_id;
 
     public void linkAvailable() {
         new Thread(new Runnable() {

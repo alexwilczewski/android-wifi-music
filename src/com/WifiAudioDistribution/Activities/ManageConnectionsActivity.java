@@ -26,22 +26,20 @@ public class ManageConnectionsActivity extends Activity {
     private static final String TAG = "MYAPP:ManageConnectionsActivity";
 
     private static final int EDIT_CONNECTION_REQ = 1;
+    private static final int ACTIVITY_ADD_CONNECTION = 2;
 
     private NsdAdapter mNsdAdapter;
-    private ListView mConnectionsList;
 
-    private ClientInfoDataSource mDataSource;
-
-    private Handler mNsdAdapterHandler = new Handler() {
-        @Override
-        public void handleMessage(Message msg) {
-            if(mNsdAdapter != null) {
-                ClientInfo item = (ClientInfo) msg.obj;
-                mNsdAdapter.add(item);
-                mNsdAdapter.notifyDataSetChanged();
-            }
-        }
-    };
+//    private Handler mNsdAdapterHandler = new Handler() {
+//        @Override
+//        public void handleMessage(Message msg) {
+//            if(mNsdAdapter != null) {
+//                ClientInfo item = (ClientInfo) msg.obj;
+//                mNsdAdapter.add(item);
+//                mNsdAdapter.notifyDataSetChanged();
+//            }
+//        }
+//    };
 
     @Override
     public void onCreate(Bundle savedInstanceState) {
@@ -60,40 +58,20 @@ public class ManageConnectionsActivity extends Activity {
         mAddService.setOnClickListener(new Button.OnClickListener() {
             @Override
             public void onClick(View view) {
-                // Insert into DB
-                EditText hostname = (EditText) findViewById(R.id.hostname);
-                EditText port = (EditText) findViewById(R.id.port);
-                EditText servicename = (EditText) findViewById(R.id.servicename_edt);
-
-                ClientInfo item = ClientInfo.getEmpty();
-                item.host = hostname.getText().toString();
-                item.port = Integer.parseInt(port.getText().toString());
-                item.name = servicename.getText().toString();
-
-                hostname.setText("");
-                port.setText("");
-                servicename.setText("");
-
-                mDataSource.create(item);
-
-                endActivity();
+                addConnection();
             }
         });
 
-        mNsdAdapter = new NsdAdapter(this, R.layout.row);
-        mConnectionsList = (ListView) findViewById(R.id.connections);
+        mNsdAdapter = new NsdAdapter(this, R.layout.connection_row);
+        ListView mConnectionsList = (ListView) findViewById(R.id.connection_list);
         mConnectionsList.setAdapter(mNsdAdapter);
 
         mConnectionsList.setOnItemClickListener(new AdapterView.OnItemClickListener() {
             public void onItemClick(AdapterView<?> parent, View view, int position, long id) {
-                ClientInfo item = (ClientInfo) mConnectionsList.getItemAtPosition(position);
-                modifyClient(item.id);
+                ClientInfo item = (ClientInfo) mNsdAdapter.getItem(position);
+                modifyConnection(item.id);
             }
         });
-
-
-        mDataSource = new ClientInfoDataSource(this);
-        mDataSource.open();
 
         refreshConnectionList();
     }
@@ -101,19 +79,20 @@ public class ManageConnectionsActivity extends Activity {
     @Override
     public void onPause() {
         Log.d(TAG, "OnPause");
+
         super.onPause();
     }
 
     @Override
     public void onResume() {
         Log.d(TAG, "OnResume");
+
         super.onResume();
     }
 
     @Override
     public void onDestroy() {
         Log.d(TAG, "OnDestroy");
-        mDataSource.close();
 
         super.onDestroy();
     }
@@ -123,11 +102,11 @@ public class ManageConnectionsActivity extends Activity {
         finish();
     }
 
-    public void resolvedClient(ClientInfo clientInfo) {
-        Message msg = new Message();
-        msg.obj = clientInfo;
-        mNsdAdapterHandler.sendMessage(msg);
-    }
+//    public void resolvedClient(ClientInfo clientInfo) {
+//        Message msg = new Message();
+//        msg.obj = clientInfo;
+//        mNsdAdapterHandler.sendMessage(msg);
+//    }
 
     @Override
     public boolean onOptionsItemSelected(MenuItem item) {
@@ -140,7 +119,13 @@ public class ManageConnectionsActivity extends Activity {
         return super.onOptionsItemSelected(item);
     }
 
-    public void modifyClient(long id) {
+    public void addConnection() {
+        Intent intent = new Intent(this, EditConnectionActivity.class);
+        intent.putExtra(EditConnectionActivity.MESSAGE_CLIENT_ID, ClientInfo.NON_EXISTANT_ID);
+        startActivityForResult(intent, ACTIVITY_ADD_CONNECTION);
+    }
+
+    public void modifyConnection(long id) {
         Intent intent = new Intent(this, EditConnectionActivity.class);
         intent.putExtra(EditConnectionActivity.MESSAGE_CLIENT_ID, id);
         startActivityForResult(intent, EDIT_CONNECTION_REQ);
@@ -148,11 +133,18 @@ public class ManageConnectionsActivity extends Activity {
 
     @Override
     protected void onActivityResult(int requestCode, int resultCode, Intent data) {
-        if(requestCode == EDIT_CONNECTION_REQ) {
-            if(resultCode == RESULT_OK) {
-                // Refresh Adapter List
-                refreshConnectionList();
-                Log.d(TAG, "Modify Finished Successfully");
+        switch(requestCode) {
+            case EDIT_CONNECTION_REQ: {
+                if(resultCode == RESULT_OK) {
+                    // Refresh Adapter List
+                    refreshConnectionList();
+                    Log.d(TAG, "Modify Finished Successfully");
+                }
+            }
+            case ACTIVITY_ADD_CONNECTION: {
+                if(resultCode == RESULT_OK) {
+                    refreshConnectionList();
+                }
             }
         }
     }
@@ -160,12 +152,14 @@ public class ManageConnectionsActivity extends Activity {
     public void refreshConnectionList() {
         mNsdAdapter.clear();
 
+        ClientInfoDataSource mDataSource = new ClientInfoDataSource(this);
+        mDataSource.open();
         List<ClientInfo> clients = mDataSource.getAll();
+        mDataSource.close();
+
         Iterator<ClientInfo> itr = clients.iterator();
         while(itr.hasNext()) {
-            resolvedClient(itr.next());
+            mNsdAdapter.add(itr.next());
         }
     }
-
-
 }

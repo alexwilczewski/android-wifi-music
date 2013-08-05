@@ -10,4 +10,5 @@
     <string name="add_service_btn">Add Service</string>
     <string name="delete_service_btn">Delete</string>
     <string name="save_edit_service_btn">Save</string>
+    <string name="manage_pods_label">Manage Pods</string>
 </resources>

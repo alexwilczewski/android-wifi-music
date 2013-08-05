@@ -1,0 +1,22 @@
+<?xml version="1.0" encoding="utf-8"?>
+
+<RelativeLayout xmlns:android="http://schemas.android.com/apk/res/android"
+                android:layout_width="match_parent"
+                android:layout_height="match_parent">
+    <Button android:id="@+id/select_song"
+            android:layout_width="wrap_content"
+            android:layout_height="wrap_content"
+            android:text="Select Song" />
+
+    <Button android:id="@+id/stop_playback"
+            android:layout_width="wrap_content"
+            android:layout_height="wrap_content"
+            android:layout_below="@id/select_song"
+            android:text="Stop Playback" />
+
+    <ListView android:id="@+id/pod_connection_list"
+              android:layout_width="match_parent"
+              android:layout_height="wrap_content"
+              android:layout_alignParentLeft="true"
+              android:layout_alignParentBottom="true" />
+</RelativeLayout>

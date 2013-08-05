@@ -12,15 +12,19 @@ import com.WifiAudioDistribution.Networking.ClientInfo;
 
 public class ClientInfoDataSource {
     private static final String TAG = "MYAPP:ClientInfoDataSource";
-    // Database fields
+
     private SQLiteDatabase database;
-    private ClientInfoSqliteHelper dbHelper;
-    private String[] allColumns = { ClientInfoSqliteHelper.C_ID,
-            ClientInfoSqliteHelper.C_HOSTNAME, ClientInfoSqliteHelper.C_PORT,
-            ClientInfoSqliteHelper.C_SERVICENAME };
+    private SqliteHelper dbHelper;
+    private String[] allColumns = {
+        SqliteHelper.ClientInfo.C_ID,
+        SqliteHelper.ClientInfo.C_HOSTNAME,
+        SqliteHelper.ClientInfo.C_PORT,
+        SqliteHelper.ClientInfo.C_SERVICENAME,
+        SqliteHelper.ClientInfo.C_POD_ID
+    };
 
     public ClientInfoDataSource(Context context) {
-        dbHelper = new ClientInfoSqliteHelper(context);
+        dbHelper = new SqliteHelper(context);
     }
 
     public void open() throws SQLException {
@@ -31,20 +35,14 @@ public class ClientInfoDataSource {
         dbHelper.close();
     }
 
-    public long create(ClientInfo store) {
-        ContentValues values = new ContentValues();
-        values.put(ClientInfoSqliteHelper.C_HOSTNAME, store.host);
-        values.put(ClientInfoSqliteHelper.C_PORT, store.port);
-        values.put(ClientInfoSqliteHelper.C_SERVICENAME, store.name);
-
-        long insertId = database.insert(ClientInfoSqliteHelper.TABLE, null, values);
-        return insertId;
+    public boolean isOpen() {
+        return (database != null && database.isOpen());
     }
 
     public List<ClientInfo> getAll() {
         List<ClientInfo> list = new ArrayList<ClientInfo>();
 
-        Cursor cursor = database.query(ClientInfoSqliteHelper.TABLE,
+        Cursor cursor = database.query(SqliteHelper.ClientInfo.TABLE,
                 allColumns, null, null, null, null, null);
 
         cursor.moveToFirst();
@@ -59,8 +57,8 @@ public class ClientInfoDataSource {
     }
 
     public ClientInfo find(long id) {
-        Cursor cursor = database.query(ClientInfoSqliteHelper.TABLE,
-                allColumns, ClientInfoSqliteHelper.C_ID + " = " + id, null,
+        Cursor cursor = database.query(SqliteHelper.ClientInfo.TABLE,
+                allColumns, SqliteHelper.ClientInfo.C_ID + " = " + id, null,
                 null, null, null);
         cursor.moveToFirst();
         if(cursor.getCount() <= 0) {
@@ -71,11 +69,29 @@ public class ClientInfoDataSource {
         return item;
     }
 
+    public List<ClientInfo> findByPodId(long podId) {
+        List<ClientInfo> list = new ArrayList<ClientInfo>();
+
+        Cursor cursor = database.query(SqliteHelper.ClientInfo.TABLE,
+                allColumns, SqliteHelper.ClientInfo.C_POD_ID + " = " + podId, null, null, null, null);
+
+        cursor.moveToFirst();
+        while (!cursor.isAfterLast()) {
+            ClientInfo item = toObject(cursor);
+            list.add(item);
+            cursor.moveToNext();
+        }
+        // Make sure to close the cursor
+        cursor.close();
+        return list;
+    }
+
     public boolean save(ClientInfo store) {
         ContentValues values = new ContentValues();
-        values.put(ClientInfoSqliteHelper.C_HOSTNAME, store.host);
-        values.put(ClientInfoSqliteHelper.C_PORT, store.port);
-        values.put(ClientInfoSqliteHelper.C_SERVICENAME, store.name);
+        values.put(SqliteHelper.ClientInfo.C_HOSTNAME, store.host);
+        values.put(SqliteHelper.ClientInfo.C_PORT, store.port);
+        values.put(SqliteHelper.ClientInfo.C_SERVICENAME, store.name);
+        values.put(SqliteHelper.ClientInfo.C_POD_ID, store.pod_id);
 
         boolean success;
         if(ClientInfo.isEmpty(store)) {
@@ -97,17 +113,17 @@ public class ClientInfoDataSource {
     }
 
     private long create(ContentValues values) {
-        return database.insert(ClientInfoSqliteHelper.TABLE, null, values);
+        return database.insert(SqliteHelper.ClientInfo.TABLE, null, values);
     }
 
     private int update(long id, ContentValues values) {
-        return database.update(ClientInfoSqliteHelper.TABLE,
-                values, ClientInfoSqliteHelper.C_ID + " = " + id, null);
+        return database.update(SqliteHelper.ClientInfo.TABLE,
+                values, SqliteHelper.ClientInfo.C_ID + " = " + id, null);
     }
 
     public boolean delete(long id) {
-        int count = database.delete(ClientInfoSqliteHelper.TABLE,
-                ClientInfoSqliteHelper.C_ID + " = " + id, null);
+        int count = database.delete(SqliteHelper.ClientInfo.TABLE,
+                SqliteHelper.ClientInfo.C_ID + " = " + id, null);
         return (count > 0);
     }
 
@@ -117,6 +133,7 @@ public class ClientInfoDataSource {
         item.host = cursor.getString(1);
         item.port = cursor.getInt(2);
         item.name = cursor.getString(3);
+        item.pod_id = cursor.getInt(4);
 
         return item;
     }

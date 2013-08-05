@@ -11,17 +11,22 @@ import java.util.concurrent.LinkedBlockingQueue;
 public class SendingClientRunnable implements Runnable {
     private static final String TAG = "MYAPP:SendingClientRunnable";
 
-    private ClientManager tManager;
+    static public Map<Integer, SendingClientRunnable> runnables = new HashMap<Integer, SendingClientRunnable>();
+
+    private List<ClientInfo> tConnections;
     private ArrayList<Socket> tSockets;
     private File tPlaybackFile;
     private boolean tSocketsOpened;
     private LinkedBlockingQueue<Integer> tMessages;
 
-    public SendingClientRunnable(ClientManager manager, File playbackFile) {
-        tManager = manager;
-        tPlaybackFile = playbackFile;
+    public SendingClientRunnable(List<ClientInfo> connections) {
+        tConnections = connections;
         tSocketsOpened = false;
         tMessages = new LinkedBlockingQueue<Integer>();
+    }
+
+    public void setFile(File playbackFile) {
+        tPlaybackFile = playbackFile;
     }
 
     public void stopPlayback() {
@@ -29,10 +34,8 @@ public class SendingClientRunnable implements Runnable {
     }
 
     public void initializeSockets() {
-        Collection<ClientInfo> services = tManager.getServices();
-
         // Get list of available Clients and bind sockets
-        Iterator<ClientInfo> itrNsd = services.iterator();
+        Iterator<ClientInfo> itrNsd = tConnections.iterator();
         while(itrNsd.hasNext()) {
             ClientInfo clientInfo = itrNsd.next();
             String host = clientInfo.host;

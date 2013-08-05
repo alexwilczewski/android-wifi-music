@@ -8,7 +8,7 @@
     <uses-permission android:name="android.permission.ACCESS_NETWORK_STATE" />
     <uses-permission android:name="android.permission.ACCESS_WIFI_STATE" />
     <application android:label="@string/app_name" android:icon="@drawable/ic_launcher">
-        <activity android:name="MyActivity"
+        <activity android:name=".Activities.MainActivity"
                   android:label="@string/app_name"
                   android:launchMode="singleTop">
             <intent-filter>
@@ -16,19 +16,33 @@
                 <category android:name="android.intent.category.LAUNCHER"/>
             </intent-filter>
         </activity>
+
         <activity android:name="com.WifiAudioDistribution.Activities.ManageConnectionsActivity"
-                android:label="@string/manage_connections_label"
-                android:parentActivityName="com.WifiAudioDistribution.MyActivity">
-            <meta-data
-                    android:name="android.support.PARENT_ACTIVITY"
-                    android:value="com.WifiAudioDistribution.MyActivity" />
+                  android:label="@string/manage_connections_label"
+                  android:parentActivityName="com.WifiAudioDistribution.Activities.MainActivity">
+            <meta-data android:name="android.support.PARENT_ACTIVITY"
+                      android:value="com.WifiAudioDistribution.Activities.MainActivity" />
         </activity>
+
         <activity android:name="com.WifiAudioDistribution.Activities.EditConnectionActivity"
                   android:label="@string/edit_connection_label"
                   android:parentActivityName="com.WifiAudioDistribution.Activities.ManageConnectionsActivity">
-            <meta-data
-                    android:name="android.support.PARENT_ACTIVITY"
-                    android:value="com.WifiAudioDistribution.Activities.ManageConnectionsActivity" />
+            <meta-data android:name="android.support.PARENT_ACTIVITY"
+                       android:value="com.WifiAudioDistribution.Activities.ManageConnectionsActivity" />
+        </activity>
+
+        <activity android:name="com.WifiAudioDistribution.Activities.ManagePodsActivity"
+                  android:label="@string/manage_pods_label"
+                  android:parentActivityName="com.WifiAudioDistribution.Activities.MainActivity">
+            <meta-data android:name="android.support.PARENT_ACTIVITY"
+                       android:value="com.WifiAudioDistribution.Activities.MainActivity" />
+        </activity>
+
+        <activity android:name="com.WifiAudioDistribution.Activities.PodViewActivity"
+                  android:label="Pod View"
+                  android:parentActivityName="com.WifiAudioDistribution.Activities.PodViewActivity">
+            <meta-data android:name="android.support.PARENT_ACTIVITY"
+                       android:value="com.WifiAudioDistribution.Activities.PodViewActivity" />
         </activity>
     </application>
 </manifest>

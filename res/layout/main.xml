@@ -1,32 +1,27 @@
 <?xml version="1.0" encoding="utf-8"?>
-<LinearLayout xmlns:android="http://schemas.android.com/apk/res/android"
+<RelativeLayout xmlns:android="http://schemas.android.com/apk/res/android"
               android:orientation="vertical"
               android:layout_width="fill_parent"
-              android:layout_height="fill_parent"
-        >
-    <ListView
-            android:id="@+id/connections"
-            android:layout_width="wrap_content"
-            android:layout_height="wrap_content" />
-    <Button
-        android:id="@+id/music"
-        android:layout_width="wrap_content"
-        android:layout_height="wrap_content"
-        android:text="Distribute Music" />
-    <Button android:id="@+id/rediscovery"
+              android:layout_height="fill_parent">
+
+    <ListView android:id="@+id/pod_list"
+              android:layout_width="wrap_content"
+              android:layout_height="wrap_content"
+              android:layout_alignParentTop="true"
+              android:layout_alignParentLeft="true" />
+
+    <Button android:id="@+id/manage_pods"
             android:layout_width="wrap_content"
             android:layout_height="wrap_content"
-            android:text="Rediscovery" />
+            android:layout_alignParentBottom="true"
+            android:layout_alignParentLeft="true"
+            android:text="Manage Pods" />
 
-    <Button
-        android:id="@+id/manage_connections"
-        android:layout_width="wrap_content"
-        android:layout_height="wrap_content"
-        android:text="@string/manage_connections_btn" />
-
-    <Button android:id="@+id/stop_playback"
+    <Button android:id="@+id/manage_connections"
             android:layout_width="wrap_content"
             android:layout_height="wrap_content"
-            android:text="Stop Playback" />
-</LinearLayout>
+            android:layout_alignTop="@id/manage_pods"
+            android:layout_toRightOf="@id/manage_pods"
+            android:text="@string/manage_connections_btn" />
+</RelativeLayout>
 

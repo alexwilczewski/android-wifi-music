@@ -2,19 +2,19 @@ package com.WifiAudioDistribution.Nsd;
 
 import android.net.nsd.NsdServiceInfo;
 import android.util.Log;
+import com.WifiAudioDistribution.Activities.MainActivity;
 import com.WifiAudioDistribution.ClientManager;
-import com.WifiAudioDistribution.MyActivity;
 import com.WifiAudioDistribution.Networking.ClientInfo;
 
 public class NsdRunnable implements Runnable {
     private final String TAG = "MYAPP:NsdRunnable";
 
     // Length of time to run discovery
-    private MyActivity mActivity;
+    private MainActivity mActivity;
     private int msRunning;
     private ClientManager mClientManager;
 
-    public NsdRunnable(MyActivity activity, ClientManager mClientManager, int msRunning) {
+    public NsdRunnable(MainActivity activity, ClientManager mClientManager, int msRunning) {
         this.mActivity = activity;
         this.mClientManager = mClientManager;
         this.msRunning = msRunning;
@@ -37,7 +37,7 @@ public class NsdRunnable implements Runnable {
                 clientInfo.name = serviceInfo.getServiceName();
                 clientInfo.port = serviceInfo.getPort();
 
-                mActivity.resolvedClient(clientInfo);
+//                mActivity.resolvedClient(clientInfo);
             }
         });
 

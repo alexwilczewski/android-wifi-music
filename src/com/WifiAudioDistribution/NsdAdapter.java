@@ -33,7 +33,7 @@ public class NsdAdapter extends ArrayAdapter<ClientInfo> {
         ClientInfo clientInfo = getItem(position);
 
         TextView hostnamePortText = (TextView) v.findViewById(R.id.hostname_port);
-        TextView servicenameText = (TextView) v.findViewById(R.id.servicename);
+        TextView servicenameText = (TextView) v.findViewById(R.id.row_servicename);
         TextView availableText = (TextView) v.findViewById(R.id.available);
 
         hostnamePortText.setText(clientInfo.host+":"+clientInfo.port);
