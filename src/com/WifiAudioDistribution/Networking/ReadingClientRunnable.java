@@ -55,6 +55,7 @@ public class ReadingClientRunnable implements Runnable {
                     if(message == ClientManager.SENDING_FILE) {
                         Log.d(TAG, "Begin Reading in the file");
 
+                        mc.reset();
                         mc.setUp(new StreamingFile(mActivity.getCacheDir(), StreamingFileName));
                     } else if(message == ClientManager.START_PLAYBACK) {
                         Log.d(TAG, "Start Playback");

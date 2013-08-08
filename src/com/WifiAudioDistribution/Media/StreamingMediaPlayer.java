@@ -28,16 +28,6 @@ public class StreamingMediaPlayer {
     public StreamingMediaPlayer() {
         Log.d(TAG, "Media Player generated");
         theMediaPlayer = new MediaPlayer();
-        reset();
-    }
-
-    public void reset() {
-        started = false;
-        if(theMediaPlayer.isPlaying()) {
-            theMediaPlayer.stop();
-        }
-        theMediaPlayer.reset();
-        theMediaPlayer.setAudioStreamType(AudioManager.STREAM_MUSIC);
     }
 
     public void tearDown() {
@@ -52,12 +42,6 @@ public class StreamingMediaPlayer {
         theMediaPlayer.release();
     }
 
-    public void stop() {
-        started = false;
-        stopOnPlaying();
-        theMediaPlayer.stop();
-    }
-
     public void associateStreamingFile(StreamingFile streamFile) {
         Log.d(TAG, "Set stream file");
         mStreamFile = streamFile;
@@ -69,8 +53,6 @@ public class StreamingMediaPlayer {
         }
 
         try {
-            stopOnPlaying();
-            reset();
             if(mStreamFile.tmpsize() <= 0) {
                 return false;
             }
@@ -89,7 +71,7 @@ public class StreamingMediaPlayer {
         return false;
     }
 
-    public boolean reassociateStreamFile() {
+    public boolean setUp() {
         Log.d(TAG, "Reassociate");
 
         if(mStreamFile == null) {
@@ -98,9 +80,13 @@ public class StreamingMediaPlayer {
 
         int curr = 0;
 
-        if(!started) {
+        if(started) {
             curr = theMediaPlayer.getCurrentPosition();
+            stop();
+            theMediaPlayer.reset();
         }
+
+        theMediaPlayer.setAudioStreamType(AudioManager.STREAM_MUSIC);
 
         boolean ret = setUpDataSource();
         Log.d(TAG, "Set up data source: " + (ret ? "Yes" : "No"));
@@ -127,6 +113,12 @@ public class StreamingMediaPlayer {
                 Log.e(TAG, "IOException", e);
             }
         }
+    }
+
+    public void stop() {
+        started = false;
+        stopOnPlaying();
+        theMediaPlayer.stop();
     }
 
     public void startOnPlaying() {

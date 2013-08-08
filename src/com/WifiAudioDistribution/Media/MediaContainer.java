@@ -16,8 +16,6 @@ public class MediaContainer {
     private boolean stopped;
 
     private MediaContainer() {
-        mPlayer = new StreamingMediaPlayer();
-        stopped = false;
         reset();
     }
 
@@ -34,12 +32,17 @@ public class MediaContainer {
     }
 
     public void reset() {
+        if(mPlayer != null) {
+            mPlayer.tearDown();
+        }
         if(mStreamingFile != null) {
             mStreamingFile.tearDown();
         }
 
         mStreamingFile = null;
+        mPlayer = new StreamingMediaPlayer();
         hasSetUp = false;
+        stopped = false;
     }
 
     public void resetStopped() {
@@ -91,7 +94,6 @@ public class MediaContainer {
         Log.d(TAG, "Streamfile Tmpsize: " + mStreamingFile.tmpsize());
         mStreamingFile.transfer();
         Log.d(TAG, "File Transferred");
-        mPlayer.reassociateStreamFile();
-        mPlayer.start();
+        mPlayer.setUp();
     }
 }

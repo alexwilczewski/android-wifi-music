@@ -18,6 +18,7 @@ import com.WifiAudioDistribution.Networking.ClientInfo;
 import com.WifiAudioDistribution.NsdAdapter;
 import com.WifiAudioDistribution.Pod;
 import com.WifiAudioDistribution.R;
+import com.WifiAudioDistribution.RunningPod;
 
 import java.io.File;
 import java.util.Iterator;
@@ -30,7 +31,7 @@ public class PodViewActivity extends Activity {
 
     public static final String MESSAGE_POD_ID = "com.WifiAudioDistribution.POD_ID";
 
-    private Pod mPod;
+    private RunningPod mRunningPod;
 
     @Override
     public void onCreate(Bundle savedInstanceState) {
@@ -45,7 +46,7 @@ public class PodViewActivity extends Activity {
 
         PodDataSource podDataSource = new PodDataSource(this);
         podDataSource.open();
-        mPod = podDataSource.find(id);
+        Pod mPod = podDataSource.find(id);
         podDataSource.close();
 
         setTitle(mPod.getName());
@@ -88,6 +89,8 @@ public class PodViewActivity extends Activity {
             mConnectionListAdapter.add(itr.next());
         }
         mConnectionListAdapter.notifyDataSetChanged();
+
+        mRunningPod = RunningPod.get(mPod);
     }
 
     @Override
@@ -112,9 +115,9 @@ public class PodViewActivity extends Activity {
                     String filePath = uri.getPath();
                     Log.i(TAG, "PATH: "+filePath);
 
-                    mPod.setFile(new File(filePath));
+                    mRunningPod.setFile(new File(filePath));
 
-                    mPod.start();
+                    mRunningPod.start();
                 }
             }
         }
@@ -148,6 +151,6 @@ public class PodViewActivity extends Activity {
     }
 
     public void stopPlayback() {
-        mPod.stopPlayback();
+        mRunningPod.stopPlayback();
     }
 }

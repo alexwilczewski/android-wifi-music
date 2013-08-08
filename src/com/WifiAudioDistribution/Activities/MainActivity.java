@@ -3,7 +3,6 @@ package com.WifiAudioDistribution.Activities;
 import android.app.Activity;
 import android.content.Intent;
 import android.content.pm.ActivityInfo;
-import android.net.Uri;
 import android.os.Bundle;
 import android.os.Handler;
 import android.os.Message;
@@ -17,25 +16,21 @@ import com.WifiAudioDistribution.ClientManager;
 import com.WifiAudioDistribution.Db.ClientInfoDataSource;
 import com.WifiAudioDistribution.Db.PodDataSource;
 import com.WifiAudioDistribution.Networking.ClientInfo;
-import com.WifiAudioDistribution.Nsd.NsdRunnable;
 import com.WifiAudioDistribution.NsdAdapter;
 import com.WifiAudioDistribution.Pod;
 import com.WifiAudioDistribution.R;
 
-import java.io.File;
 import java.util.Iterator;
 import java.util.List;
 
 public class MainActivity extends Activity {
-    private final String TAG = "MYAPP:Activity";
+    private final String TAG = "MYAPP:MainActivity";
 
     private final int ACTIVITY_MANAGE_CONNECTIONS = 1;
     private final int ACTIVITY_MANAGE_PODS = 2;
     private final int ACTIVITY_POD_VIEW = 3;
 
     public ClientManager mClientManager;
-
-    public MainActivity mActivity;
 
     private List<Pod> mPods;
 
@@ -80,8 +75,6 @@ public class MainActivity extends Activity {
 
         // Lock to portrait
         setRequestedOrientation(ActivityInfo.SCREEN_ORIENTATION_PORTRAIT);
-
-        mActivity = this;
 
         mClientManager = new ClientManager(this);
         mClientManager.initializeServerSocket();

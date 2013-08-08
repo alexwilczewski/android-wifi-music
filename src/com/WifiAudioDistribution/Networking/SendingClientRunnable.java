@@ -159,7 +159,7 @@ public class SendingClientRunnable implements Runnable {
                                         Log.d(TAG, "Send Start Playback");
                                         os.write(ClientManager.START_PLAYBACK);
                                         os.flush();
-                                    } while((is.read()) == ClientManager.UNKNOWN_MESSAGE);
+                                    } while((is.read()) != ClientManager.CONTINUE);
                                 } catch(IOException e) {
                                     Log.e(TAG, "IOException", e);
                                 }
@@ -171,7 +171,7 @@ public class SendingClientRunnable implements Runnable {
                     }
 
                     try {
-                        Thread.sleep(2000);
+                        Thread.sleep(largestLatency+200);
                     } catch(InterruptedException e) {
                         Log.e(TAG, "InterruptedException", e);
                     }

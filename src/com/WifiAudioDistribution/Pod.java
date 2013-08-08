@@ -12,18 +12,11 @@ import java.util.Map;
 public class Pod {
     private final String TAG = "MYAPP:Pod";
 
-    static private Map<Integer, Thread> threads = new HashMap<Integer, Thread>();
-
-    private File mFile;
-
     private long id;
     private String name;
 
     private boolean isNew;
     private List<ClientInfo> mConnections;
-
-    private SendingClientRunnable mSendingClientRunnable;
-    private Integer PODKEY;
 
     static public Pod getNew() {
         return new Pod();
@@ -42,11 +35,6 @@ public class Pod {
 
     private void init() {
         clearConnections();
-
-        PODKEY = new Integer((int) id);
-        if(SendingClientRunnable.runnables.containsKey(PODKEY)) {
-            mSendingClientRunnable = SendingClientRunnable.runnables.get(PODKEY);
-        }
     }
 
     public void setId(long id) {
@@ -84,32 +72,5 @@ public class Pod {
 
     public void clearConnections() {
         mConnections = new ArrayList<ClientInfo>();
-    }
-
-    public void setFile(File playbackFile) {
-        mFile = playbackFile;
-    }
-
-    public void start() {
-        if(mSendingClientRunnable == null) {
-            mSendingClientRunnable = new SendingClientRunnable(mConnections);
-            SendingClientRunnable.runnables.put(PODKEY, mSendingClientRunnable);
-        }
-        mSendingClientRunnable.setFile(mFile);
-
-        if(threads.containsKey(PODKEY)) {
-            threads.get(PODKEY).interrupt();
-        }
-
-        Thread mSendingThread = new Thread(mSendingClientRunnable);
-        mSendingThread.start();
-
-        threads.put(PODKEY, mSendingThread);
-    }
-
-    public void stopPlayback() {
-        if(mSendingClientRunnable != null) {
-            mSendingClientRunnable.stopPlayback();
-        }
     }
 }
